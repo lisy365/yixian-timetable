@@ -11,6 +11,11 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- 提醒通知：Android 13+ 需要运行时授权；精确闹钟在 Android 12+ 可选（被拒绝时自动降级为非精确） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".HApplication"
@@ -22,6 +27,27 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
+
+        <!-- 课程 / 日程 / 待办提醒 -->
+        <receiver
+            android:name=".utils.AlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.action.REMIND" />
+                <action android:name="com.stupidtree.hitax.action.RESCHEDULE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 开机 / 应用更新后恢复提醒排期 -->
+        <receiver
+            android:name=".utils.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".ui.widgets.today.normal.TodayWidget"
@@ -93,6 +119,7 @@
         <activity android:name=".ui.eas.classroom.EmptyClassroomActivity" />
         <activity android:name=".ui.profile.ProfileActivity" />
         <activity android:name=".ui.eas.exam.ExamActivity" />
+        <activity android:name=".ui.task.TaskManagerActivity" />
         <activity android:name=".ui.about.ActivityAbout" />
         <activity android:name=".ui.news.lecture.ActivityLecture" />
         <activity android:name=".ui.news.NewsDetailActivity" />
