@@ -19,7 +19,6 @@ local.properties
 # 各模块构建产物
 */build/
 **/build/
-app/release/
 
 # 本机测试与调试脚本
 _scratch/
