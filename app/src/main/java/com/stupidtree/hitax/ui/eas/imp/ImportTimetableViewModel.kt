@@ -1,0 +1,135 @@
+package com.stupidtree.hitax.ui.eas.imp
+
+import android.app.Application
+import androidx.lifecycle.*
+import com.stupidtree.hitax.data.model.eas.TermItem
+import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
+import com.stupidtree.hitax.data.repository.EASRepository
+import com.stupidtree.component.data.DataState
+import com.stupidtree.component.data.Trigger
+import com.stupidtree.hitax.ui.eas.EASViewModel
+import com.stupidtree.component.data.MTransformations
+import java.util.*
+
+class ImportTimetableViewModel(application: Application) : EASViewModel(application) {
+    /**
+     * 仓库区
+     */
+    private val easRepository = EASRepository.getInstance(application)
+
+    /**
+     * LiveData区
+     */
+
+    private val termsController = MutableLiveData<Trigger>()
+
+    val termsLiveData: LiveData<DataState<List<TermItem>>> = termsController.switchMap{
+            return@switchMap easRepository.getAllTerms()
+        }
+
+    val selectedTermLiveData: MutableLiveData<TermItem?> = MutableLiveData()
+
+    val startDateLiveData: MediatorLiveData<DataState<Calendar>> =
+        MTransformations.switchMap(selectedTermLiveData) {
+            it?.let { it1 ->
+                return@switchMap easRepository.getStartDateOfTerm(it1)
+            }
+            val r = MutableLiveData<DataState<Calendar>>()
+            r.value = DataState(Calendar.getInstance())
+            return@switchMap r
+        }
+
+    val importTimetableResultLiveData = MediatorLiveData<DataState<Boolean>>()
+
+    val isUndergraduateLiveData = MutableLiveData<Boolean>()
+    val scheduleStructureLiveData: MediatorLiveData<DataState<MutableList<TimePeriodInDay>>> =
+        MediatorLiveData()
+
+
+    init {
+        scheduleStructureLiveData.addSource(selectedTermLiveData) {
+            isUndergraduateLiveData.value?.let { isu ->
+                scheduleStructureLiveData.addSource(
+                    easRepository.getScheduleStructure(
+                        it!!,
+                        isu
+                    )
+                ) { itt ->
+                    scheduleStructureLiveData.value = itt
+                }
+            }
+        }
+        scheduleStructureLiveData.addSource(isUndergraduateLiveData) {
+            selectedTermLiveData.value?.let { st ->
+                scheduleStructureLiveData.addSource(
+                    easRepository.getScheduleStructure(
+                        st, it
+                    )
+                ) { itt ->
+                    scheduleStructureLiveData.value = itt
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 方法区
+     */
+    fun startRefreshTerms() {
+        termsController.value = Trigger.actioning
+    }
+
+    fun changeSelectedTerm(termItem: TermItem) {
+        selectedTermLiveData.value = termItem
+        // 中大课表结构固定，默认按本科结构展示，保证课表结构能立即加载
+        if (isUndergraduateLiveData.value == null) {
+            isUndergraduateLiveData.value = true
+        }
+    }
+
+    fun changeIsUndergraduate(isUnder: Boolean) {
+        isUndergraduateLiveData.value = isUnder
+    }
+
+    fun startGetAllTerms(): List<TermItem> {
+        if (termsLiveData.value != null && termsLiveData.value!!.data != null) {
+            return termsLiveData.value!!.data!!
+        }
+        return listOf()
+    }
+
+    fun startImportTimetable(): Boolean {
+        selectedTermLiveData.value?.let { term ->
+            startDateLiveData.value?.let { date ->
+                scheduleStructureLiveData.value?.let { schedule ->
+                    if (schedule.data != null && date.state == DataState.STATE.SUCCESS && date.data != null) {
+                        easRepository.startImportTimetableOfTerm(
+                            term,
+                            date.data!!,
+                            schedule.data!!,
+                            importTimetableResultLiveData
+                        )
+                        return true
+                    }
+                }
+
+            }
+
+        }
+        return false
+    }
+
+
+    fun setStructureData(periodInDay: TimePeriodInDay, position: Int) {
+        if (position < (scheduleStructureLiveData.value?.data?.size ?: 0)) {
+            scheduleStructureLiveData.value?.data?.set(position, periodInDay)
+            scheduleStructureLiveData.value = scheduleStructureLiveData.value
+        }
+    }
+
+    fun changeStartDate(date: Calendar) {
+        startDateLiveData.value = DataState(date)
+    }
+
+}
