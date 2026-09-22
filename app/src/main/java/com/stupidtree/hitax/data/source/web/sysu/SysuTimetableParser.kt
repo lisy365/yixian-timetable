@@ -287,40 +287,12 @@ object SysuTimetableParser {
     }
 
     /**
-     * 默认课表结构（中大作息，导入页可自行微调）
-     *
-     * HITA 的课表结构按「节」存：schedule[i] 即第 i+1 节的起止时间，
-     * 这里给出 1..14 节的作息时间。
+     * 中大标准作息（按「节」）：与 [com.stupidtree.hitax.data.model.timetable.Timetable.getDefaultTimeStructure]
+     * 使用同一份数据，保证「导入的课表」与「手动新建的课表」时间完全一致。
      */
     fun buildScheduleStructureFromSections(): MutableList<com.stupidtree.hitax.data.model.timetable.TimePeriodInDay> {
-        val res = mutableListOf<com.stupidtree.hitax.data.model.timetable.TimePeriodInDay>()
-        var idx = 0
-        while (idx < MAX_SECTION) {
-            val from = SECTION_START_TIMES.getOrNull(idx) ?: break
-            val to = SECTION_END_TIMES.getOrNull(idx) ?: break
-            res.add(
-                com.stupidtree.hitax.data.model.timetable.TimePeriodInDay(
-                    com.stupidtree.hitax.data.model.timetable.TimeInDay(from.first, from.second),
-                    com.stupidtree.hitax.data.model.timetable.TimeInDay(to.first, to.second)
-                )
-            )
-            idx++
-        }
-        return res
+        return com.stupidtree.hitax.data.model.timetable.Timetable()
+            .getDefaultTimeStructure()
+            .toMutableList()
     }
-
-    /** 单节起始/结束时间（中大南校园作息，可在导入页调整） */
-    private val SECTION_START_TIMES = listOf(
-        8 to 0, 8 to 55, 10 to 0, 10 to 55,
-        14 to 30, 15 to 25, 16 to 20, 17 to 15,
-        19 to 0, 19 to 55, 20 to 50, 21 to 45,
-        22 to 40, 23 to 35
-    )
-
-    private val SECTION_END_TIMES = listOf(
-        8 to 45, 9 to 40, 10 to 45, 11 to 40,
-        15 to 15, 16 to 10, 17 to 5, 18 to 0,
-        19 to 45, 20 to 40, 21 to 35, 22 to 30,
-        23 to 25, 0 to 20
-    )
 }
