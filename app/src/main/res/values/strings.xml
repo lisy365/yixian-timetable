@@ -1229,7 +1229,7 @@
       「作者的话」：留空模板，作者可直接修改此处文字（会显示在 App 的关于页）
     -->
     <string name="yixian_author_note"><![CDATA[
-（这里留给作者填写：可以在 app/src/main/res/values/strings.xml 中找到 yixian_author_note 并替换成你想说的话）
+本项目无技术含量，完全基于vibe coding开发。欢迎进群交流1124204923后续应该还会更新（？
 ]]></string>
     <string name="yixian_about_info"><![CDATA[
 <h3>逸仙课表</h3>
