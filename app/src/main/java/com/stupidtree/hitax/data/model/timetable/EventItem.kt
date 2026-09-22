@@ -36,6 +36,12 @@ class EventItem :Serializable,Comparable<EventItem>{
     var fromNumber:Int = 0
     var lastNumber:Int = 0
 
+    /** 备注（待办 / DDL 事项的详细说明，也可用于课程与日程） */
+    var note: String? = null
+
+    /** 是否已完成（待办 / DDL 事项使用） */
+    var done: Boolean = false
+
     @ColumnInfo(name = "created_at")
     var createdAt //创建时间
             : Timestamp = Timestamp(System.currentTimeMillis())
@@ -130,6 +136,8 @@ class EventItem :Serializable,Comparable<EventItem>{
         if (to != other.to) return false
         if (fromNumber != other.fromNumber) return false
         if (lastNumber != other.lastNumber) return false
+        if (note != other.note) return false
+        if (done != other.done) return false
         if (color != other.color) return false
 
         return true
@@ -147,15 +155,38 @@ class EventItem :Serializable,Comparable<EventItem>{
         result = 31 * result + to.hashCode()
         result = 31 * result + fromNumber
         result = 31 * result + lastNumber
+        result = 31 * result + (note?.hashCode() ?: 0)
+        result = 31 * result + done.hashCode()
         result = 31 * result + color
         return result
     }
 
+    /** 是否为待办 / DDL 事项 */
+    fun isTask(): Boolean = subjectId == SUBJECT_ID_TASK
+
     companion object{
+        /** 待办 / DDL 事项使用的固定科目标记 */
+        const val SUBJECT_ID_TASK = "YIXIAN_TASK"
+
         fun getTagInstance(name:String):EventItem{
             val result = EventItem()
             result.type = TYPE.TAG
             result.name = name
+            return result
+        }
+
+        /**
+         * 构造一个待办 / DDL 事项
+         * 复用 events 表，但不挂在任何课表下（timetableId 为空），因此不会被课表删除影响。
+         */
+        fun getTaskInstance(name: String, due: Long): EventItem {
+            val result = EventItem()
+            result.type = TYPE.OTHER
+            result.name = name
+            result.subjectId = SUBJECT_ID_TASK
+            result.timetableId = ""
+            result.from = Timestamp(due)
+            result.to = Timestamp(due)
             return result
         }
     }
