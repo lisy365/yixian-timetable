@@ -1,0 +1,154 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/cruel_summer_primary</item>
+        <item name="colorPrimaryVariant">@color/cruel_summer_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorFade">#736dfe</item>
+        <item name="colorPrimaryDisabled">#77cbd4e2</item>
+        <item name="backgroundColorBar">#30e7e7f2</item>
+        <item name="colorSecondary">@color/cruel_summer_primary</item>
+        <item name="colorSecondaryVariant">@color/cruel_summer_primary</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">#00000000</item>
+        <!-- Customize your theme here. -->
+        <!--        fafbff-->
+        <item name="backgroundColorBottom">#FF000000</item>
+        <item name="backgroundColorBottomAsTint">#bF242424</item>
+        <item name="backgroundColorSecond">#FF121212</item>
+        <item name="backgroundColorSecondAsTint">#6F242424</item>
+        <item name="textColorPrimary">#FFffff</item>
+        <item name="colorControlNormal">#44ffffff</item>
+        <item name="textColorSecondary">#FF858585</item>
+        <item name="colorControlDisabled">#ffE0E0E0</item>
+        <item name="backgroundIconColorBottom">#33304ffe</item>
+
+        <!--透明状态栏-->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+
+    <!-- 欢迎页的风格 -->
+    <style name="SplashTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:windowFullscreen">true</item>
+        <!-- <item name="android:windowIsTranslucent">true</item> -->
+        <!-- 透明背景不要了 -->
+    </style>
+
+
+    <!--    圆角透明背景的BottomSheetDialog主题-->
+    <style name="TransparentBottomSheetDialogTheme" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <style name="TransparentBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="behavior_peekHeight">400dp</item>
+    </style>
+
+    <style name="ToolBarTheme_Light" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorButtonNormal">#FFFFFF</item>
+        <item name="colorControlNormal">#FFFFFF</item>
+        <item name="actionMenuTextColor">#FFFFFF</item>
+        <item name="android:titleTextAppearance">@style/Toolbar_Light_TitleStyle</item>
+    </style>
+
+    <style name="Toolbar_Light_TitleStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <style name="tab_text_appearance">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!--水波纹风格-->
+    <style name="button_ripple_white">
+        <item name="android:colorControlHighlight">@color/white</item>
+        <item name="android:radius">24dp</item>
+    </style>
+
+    <style name="button_ripple_control">
+        <item name="android:colorControlHighlight">?attr/colorControlNormal</item>
+        <item name="android:radius">24dp</item>
+    </style>
+
+    <style name="button_ripple_control_large">
+        <item name="android:colorControlHighlight">?attr/colorControlNormal</item>
+        <item name="android:radius">32dp</item>
+    </style>
+
+
+    <style name="unbound_ripple_white_light">
+        <item name="android:colorControlHighlight">#44FFFFFF</item>
+    </style>
+
+    <style name="button_ripple_accent_little">
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="android:radius">16dp</item>
+    </style>
+
+    <style name="button_ripple_accent">
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="android:radius">24dp</item>
+    </style>
+
+    <style name="button_ripple_accent_large">
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="android:radius">32dp</item>
+    </style>
+
+
+    <style name="text_style_18sp_bold_white">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+    </style>
+
+    <style name="text_style_28sp_bold_white">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+    </style>
+
+    <style name="text_style_18sp_bold_primary">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="text_style_30sp_bold_primary">
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="AppTheme.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
+        <!-- Radius of the outer bound of widgets to make the rounded corners -->
+        <item name="appWidgetRadius">16dp</item>
+        <!--
+        Radius of the inner view's bound of widgets to make the rounded corners.
+        It needs to be 8dp or less than the value of appWidgetRadius
+        -->
+        <item name="appWidgetInnerRadius">8dp</item>
+    </style>
+
+    <style name="AppTheme.AppWidgetContainer" parent="AppTheme.AppWidgetContainerParent">
+        <!-- Apply padding to avoid the content of the widget colliding with the rounded corners -->
+        <item name="appWidgetPadding">16dp</item>
+    </style>
+</resources>
