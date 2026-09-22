@@ -42,7 +42,7 @@
                     android:layout_width="22dp"
                     android:layout_height="22dp"
                     android:layout_margin="8dp"
-                    android:background="@drawable/logo"
+                    android:background="@drawable/logo_yixian"
                     android:visibility="gone" />
 
             </LinearLayout>
