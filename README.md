@@ -53,11 +53,7 @@
 
 ## 作者的话
 
-> **（这里留给作者填写）**
->
-> 请编辑 `app/src/main/res/values/strings.xml` 中的 `yixian_author_note`，
-> 替换为你自己的话即可；该内容会同时显示在 App 的「关于」页面里。
->
+本项目无技术含量，完全基于vibe coding开发。欢迎进群交流1124204923后续应该还会更新（？
 > —— 作者：[@lisy365](https://github.com/lisy365)
 
 ---
