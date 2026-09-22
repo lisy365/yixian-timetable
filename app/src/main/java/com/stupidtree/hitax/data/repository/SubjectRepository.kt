@@ -94,6 +94,22 @@ class SubjectRepository(application: Application) {
         }
     }
 
+    /**
+     * 动作：把某课表下所有科目统一为同一个颜色（由用户自选）
+     */
+    fun actionUnifySubjectColors(timetableId: String, color: Int) {
+        if (timetableId.isEmpty()) return
+        executor.execute {
+            val subjects = subjectDao.getSubjectsSync(timetableId)
+            if (subjects.isEmpty()) return@execute
+            for (s in subjects) {
+                s.color = color
+            }
+            subjectDao.saveSubjectsSync(subjects)
+            StupidSync.putHistorySync(historyTag, History.ACTION.REQUIRE, subjects.getIds())
+        }
+    }
+
 
     /**
      * 动作：删除科目及其事件
