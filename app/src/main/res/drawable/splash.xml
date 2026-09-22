@@ -4,7 +4,7 @@
     <item android:drawable="?attr/backgroundColorBottom"/>
     <item
 
-        android:drawable="@drawable/logo"
+        android:drawable="@drawable/logo_yixian"
         android:gravity="center">
         <!--        &lt;!&ndash; 图片 &ndash;&gt;-->
         <!--        <bitmap android:tileMode="disabled"-->
