@@ -91,6 +91,25 @@ interface EventItemDao {
     @Insert
     fun addEvents(data:List<EventItem>)
 
+    // ------------------------------------------------------------------
+    // 待办事项 / DDL（复用 events 表，subjectId = 'YIXIAN_TASK'）
+    // ------------------------------------------------------------------
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun saveEventSync(data: EventItem)
+
+    @Query("SELECT * FROM events WHERE subjectId is 'YIXIAN_TASK' ORDER BY done ASC, `from` ASC")
+    fun getTasks(): LiveData<List<EventItem>>
+
+    @Query("SELECT * FROM events WHERE subjectId is 'YIXIAN_TASK' ORDER BY done ASC, `from` ASC")
+    fun getTasksSync(): List<EventItem>
+
+    @Query("SELECT count(*) FROM events WHERE subjectId is 'YIXIAN_TASK' AND done = 0")
+    fun getPendingTaskCount(): LiveData<Int>
+
+    @Query("UPDATE events SET done = :done WHERE id is :id")
+    fun setTaskDone(id: String, done: Boolean)
+
     /**
      * 将某课表的所有课程时间加上offset
      */
