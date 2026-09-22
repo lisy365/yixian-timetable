@@ -1,0 +1,153 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+
+
+android {
+
+//    buildToolsVersion '31.0.0-rc5'
+
+    defaultConfig {
+        applicationId "com.stupidtree.hitax.yixian"
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+        versionCode 1000000
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation":
+                                     "$projectDir/schemas".toString()]
+            }
+        }
+    }
+//    viewBinding{
+//        enabled = true
+//    }
+    buildFeatures {
+        //dataBinding = true
+        // for view binding :
+        viewBinding = true
+        compose = false
+        composeOptions {
+            kotlinCompilerVersion '1.4.30'
+            kotlinCompilerExtensionVersion compose_version
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('../keystore/yixian.jks')
+            storePassword 'yixian2026'
+            keyAlias 'yixian'
+            keyPassword 'yixian2026'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+//        useIR = true
+    }
+    namespace 'com.stupidtree.hitax'
+
+}
+
+
+
+dependencies {
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.viewpager:viewpager:1.0.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
+    implementation project(path: ':component')
+    implementation project(path: ':user')
+    implementation project(path: ':sync')
+    implementation project(path: ':style')
+    implementation project(path: ':theta')
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+
+
+    implementation "androidx.room:room-runtime:2.6.1"
+    kapt "androidx.room:room-compiler:2.6.1"
+
+
+    //kotlin的viewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4"
+    //Glide图片加载
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+//retrofit2的gson转换器
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    //jsoup爬虫
+    implementation 'org.jsoup:jsoup:1.18.2'
+
+    //buttonLoading
+    implementation 'br.com.simplepass:loading-button-android:2.2.0'
+    //折叠布局
+    implementation 'net.cachapa.expandablelayout:expandablelayout:2.9.2'
+
+    //时间轴
+    implementation 'com.github.alorma:timelineview:2.3.0'
+    //圆形进度
+    implementation 'com.github.lzyzsd:circleprogress:1.2.1'
+
+    //多行collapsingToolbar
+    implementation 'net.opacapp:multiline-collapsingtoolbar:27.1.1'
+
+    implementation 'com.beloo.widget:ChipsLayoutManager:0.3.7@aar'//流式布局
+
+    implementation 'com.cncoderx.wheelview:library:1.2.2'//滚轮选择器
+
+    implementation 'com.github.ibrahimsn98:SmoothBottomBar:1.7.6'//底部导航
+
+
+
+    //jetpack compose
+    implementation "androidx.compose.ui:ui:$compose_version"
+    // Tooling support (Previews, etc.)
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
+    // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
+    implementation "androidx.compose.foundation:foundation:$compose_version"
+    // Material Design
+    implementation "androidx.compose.material:material:$compose_version"
+    // Material design icons
+    implementation "androidx.compose.material:material-icons-core:$compose_version"
+    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    // Integration with observables
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    implementation "androidx.compose.runtime:runtime-rxjava2:$compose_version"
+    // UI Tests
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+
+    //setContent被移除
+    implementation 'androidx.activity:activity-compose:1.9.1'
+
+    implementation 'org.mnode.ical4j:ical4j:1.0.2'
+
+    //爆炸效果
+    implementation 'tyrantgit:explosionfield:1.0.1'
+}
