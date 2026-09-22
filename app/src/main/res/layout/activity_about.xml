@@ -41,7 +41,7 @@
                         android:layout_height="match_parent"
                         android:layout_gravity="center"
                         android:padding="8dp"
-                        app:srcCompat="@drawable/logo" />
+                        app:srcCompat="@drawable/logo_yixian" />
                 </androidx.cardview.widget.CardView>
 
                 <TextView
