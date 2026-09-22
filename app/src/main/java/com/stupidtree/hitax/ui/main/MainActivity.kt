@@ -120,7 +120,39 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         super.onStart()
         viewModel.startRefreshUser()
         refreshTheme()
+        // 每次回到前台：确保通知渠道存在，并滚动重排提醒（幂等）
+        com.stupidtree.hitax.utils.NotificationUtils.ensureChannels(this)
+        com.stupidtree.hitax.utils.ReminderScheduler.rescheduleAll(this)
+        requestNotificationPermissionIfNeeded()
         // 逸仙课表：原项目的在线检查更新服务（hita.store）不适用于中大，已停用
+    }
+
+    /** Android 13+ 首次进入时申请通知权限，用于上课 / 待办提醒 */
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < 33) return
+        val sp = getSharedPreferences("yixian_notification", MODE_PRIVATE)
+        if (sp.getBoolean("asked_permission", false)) return
+        sp.edit().putBoolean("asked_permission", true).apply()
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                this, android.Manifest.permission.POST_NOTIFICATIONS
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            androidx.core.app.ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                REQUEST_NOTIFICATION_PERMISSION
+            )
+        }
+    }
+
+    /** 刷新课表页的自定义背景（在设置面板中修改背景后调用） */
+    fun refreshTimetableBackground() {
+        val fragment = supportFragmentManager.fragments.firstOrNull { it is TimetableFragment } as? TimetableFragment
+        fragment?.applyBackground()
+    }
+
+    companion object {
+        const val REQUEST_NOTIFICATION_PERMISSION = 1001
     }
 
 
