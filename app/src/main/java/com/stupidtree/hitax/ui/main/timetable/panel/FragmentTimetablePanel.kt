@@ -94,17 +94,52 @@ class FragmentTimetablePanel :
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        // ---------------- 通知提醒 ----------------
-        binding?.notificationEntry?.setOnClickListener {
+        // ---------------- 一键统一科目颜色 ----------------
+        binding?.unifyColor?.setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-            FragmentNotificationSettings().show(parentFragmentManager, "notify_settings")
+            val timetable = currentTimetable
+            if (timetable == null) {
+                Toast.makeText(requireContext(), R.string.add_timetable_first, Toast.LENGTH_SHORT)
+                    .show()
+                return@setOnClickListener
+            }
+            com.stupidtree.style.widgets.PopUpColorPicker()
+                .initColor(unifyColor)
+                .setOnColorSelectListener(object :
+                    com.stupidtree.style.widgets.PopUpColorPicker.OnColorSelectedListener {
+                    override fun onSelected(color: Int) {
+                        unifyColor = color
+                        renderUnifyColorDot()
+                        com.stupidtree.hitax.data.repository.SubjectRepository
+                            .getInstance(requireActivity().application)
+                            .actionUnifySubjectColors(timetable.id, color)
+                        Toast.makeText(
+                            requireContext(),
+                            R.string.unify_subject_color_done,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }).show(parentFragmentManager, "unify_color")
         }
+
+        // ---------------- 通知提醒（已移至功能中心） ----------------
 
         viewModel.currentTimetableLiveData.observe(this) {
             currentTimetable = it
             viewModel.loadBackgroundInfo(it)
         }
         viewModel.startLoadTimetable()
+    }
+
+    /** 当前选中的统一颜色（默认取主题色） */
+    private var unifyColor: Int = 0
+
+    private fun renderUnifyColorDot() {
+        val dot = binding?.unifyColorDot ?: return
+        val color = if (unifyColor != 0) unifyColor else getColorPrimary()
+        androidx.core.view.ViewCompat.setBackgroundTintList(
+            dot, android.content.res.ColorStateList.valueOf(color)
+        )
     }
 
     private var currentTimetable: com.stupidtree.hitax.data.model.timetable.Timetable? = null
@@ -151,8 +186,8 @@ class FragmentTimetablePanel :
             binding?.bgOpacity?.progress = info.opacity
             binding?.bgDim?.progress = info.dim
             renderBackgroundLabels()
-            binding?.notificationSummary?.text = viewModel.notificationSummary()
         }
+        renderUnifyColorDot()
     }
 
     private fun renderBackgroundLabels() {
