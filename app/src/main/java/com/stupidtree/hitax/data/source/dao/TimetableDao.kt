@@ -38,6 +38,20 @@ interface TimetableDao {
     @Query("SELECT * from timetable where (:ts-startTime in (select min(:ts-startTime) from timetable where :ts>startTime)) limit 1")
     fun getTimetableClosestToTimestampSync(ts: Long): Timetable?
 
+    /**
+     * 某时间戳所属的课表：取 startTime <= ts 中最近的一套。
+     * 寒暑假等待开学（ts 早于所有课表）或假期查不到时，回退到时间上最接近的一套课表，
+     * 保证课表背景在任何周次都能正确显示。
+     */
+    @Query(
+        "SELECT * FROM timetable WHERE startTime = " +
+            "(SELECT MAX(startTime) FROM timetable WHERE startTime <= :ts) LIMIT 1"
+    )
+    fun getTimetableCoveringTimestampSync(ts: Long): Timetable?
+
+    @Query("SELECT * FROM timetable ORDER BY startTime ASC LIMIT 1")
+    fun getEarliestTimetableSync(): Timetable?
+
 
     @Query("select count(*) from timetable")
     fun geeTimetableCount(): LiveData<Int>
