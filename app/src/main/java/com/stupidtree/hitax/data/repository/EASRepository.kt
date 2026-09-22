@@ -27,6 +27,7 @@ import java.sql.Timestamp
 import java.util.*
 
 class EASRepository internal constructor(application: Application) {
+    private val appContext: Application = application
     private val easService: EASService = SysuWebSource()
     private var easPreferenceSource = EasPreferenceSource.getInstance(application)
     private var eventItemDao = AppDatabase.getDatabase(application).eventItemDao()
@@ -297,6 +298,8 @@ class EASRepository internal constructor(application: Application) {
 
 
                         importTimetableLiveData.postValue(DataState(false, DataState.STATE.SUCCESS))
+                        // 导入完成后重排提醒（课程时间可能变化）
+                        com.stupidtree.hitax.utils.ReminderScheduler.rescheduleAll(appContext)
                     }.start()
                 } else {
                     importTimetableLiveData.value = DataState(DataState.STATE.FETCH_FAILED)
