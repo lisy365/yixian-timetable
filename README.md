@@ -7,13 +7,13 @@
 </p>
 
 <p align="left">
-  <img alt="version" src="https://img.shields.io/badge/version-1.0.1-00693E"/>
+  <img alt="version" src="https://img.shields.io/badge/version-1.0.2-00693E"/>
   <img alt="platform" src="https://img.shields.io/badge/Android-6.0%2B%20(API%2023%2B)-00693E"/>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-00693E"/>
   <img alt="build" src="https://img.shields.io/badge/build-Gradle%208.7%20%2B%20JDK%2017-00693E"/>
 </p>
 
-安装包：[release/yixian-timetable-v1.0.1.apk](release/yixian-timetable-v1.0.1.apk) ｜ [Release 页面](https://github.com/lisy365/yixian-timetable/releases/tag/v1.0.1)
+安装包：[release/yixian-timetable-v1.0.2.apk](release/yixian-timetable-v1.0.2.apk) ｜ [Release 页面](https://github.com/lisy365/yixian-timetable/releases/tag/v1.0.2)
 
 ---
 
@@ -75,10 +75,9 @@
 
 ## 作者的话
 
-> **（这里留给作者填写）**
+> 2026 今年大一刚入学，作者发现隔壁哈工深有一个这么好的课表软件，到处搜了一圈居然没有找到 SYSU 有这种项目，非常生气。无奈作者能力有限，没办法从零开始构建一个这样的项目，我能做的只有站在巨人的肩膀上，再加上一点小小的 vibe coding，于是这个项目诞生了。项目草创，肯定有很多 bug，希望在 SYSU 学习之后能够把这个项目完善吧。
 >
-> 请编辑 `app/src/main/res/values/strings.xml` 中的 `yixian_author_note`，
-> 替换为你自己的话即可；该内容会同时显示在 App 的「关于」页面里。
+> 欢迎加群讨论：**1124204923**　｜　作者邮箱：**2788410557@qq.com**
 >
 > —— 作者：[@lisy365](https://github.com/lisy365)
 
