@@ -10,7 +10,7 @@ import java.sql.Timestamp
 /**
  * ROOM需要使用转换器将时间戳转换为Date
  */
-object TypeConverters {
+object AppTypeConverters {
     @JvmStatic
     @TypeConverter
     fun timestampToLong(value: Timestamp?): Long? {
