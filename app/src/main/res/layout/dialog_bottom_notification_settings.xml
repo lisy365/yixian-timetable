@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bottom_sheet_rounded_background"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_weight="1"
+            android:text="@string/notify_settings_title"
+            android:textColor="?attr/textColorPrimary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:text="@string/notify_reset"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <!-- 权限提示 -->
+            <TextView
+                android:id="@+id/permission_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/element_rounded_bar_grey_light_24"
+                android:padding="12dp"
+                android:text="@string/notify_permission_hint"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <!-- 总开关 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="24dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/notify_enable"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textStyle="bold" />
+
+                <Switch
+                    android:id="@+id/enable"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+            </LinearLayout>
+
+            <!-- 分类开关 -->
+            <LinearLayout
+                android:id="@+id/group_class"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_class_enable"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <Switch
+                        android:id="@+id/class_enable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_event_enable"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <Switch
+                        android:id="@+id/event_enable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_ddl_enable"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <Switch
+                        android:id="@+id/ddl_enable"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_only_school_days"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <Switch
+                        android:id="@+id/only_school_days"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                </LinearLayout>
+
+                <!-- 提前量 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_lead_class"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <TextView
+                        android:id="@+id/lead_class"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/element_rounded_button_bg_primary_light"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-black"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:textColor="?attr/colorAccent" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_lead_ddl"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <TextView
+                        android:id="@+id/lead_ddl"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/element_rounded_button_bg_primary_light"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-black"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:textColor="?attr/colorAccent" />
+                </LinearLayout>
+
+                <!-- 重复 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_repeat"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <TextView
+                        android:id="@+id/repeat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/element_rounded_button_bg_primary_light"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-black"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:textColor="?attr/colorAccent" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_interval"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <TextView
+                        android:id="@+id/interval"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/element_rounded_button_bg_primary_light"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="sans-serif-black"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:textColor="?attr/colorAccent" />
+                </LinearLayout>
+
+                <!-- 提示音 / 震动 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_sound"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <Switch
+                        android:id="@+id/sound"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/notify_vibrate"
+                        android:textColor="?attr/textColorPrimary" />
+
+                    <Switch
+                        android:id="@+id/vibrate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                </LinearLayout>
+
+                <!-- 文案模板 -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="24dp"
+                    android:alpha="0.7"
+                    android:text="@string/notify_template_hint"
+                    android:textColor="?attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/notify_template_title"
+                    android:textColor="?attr/textColorPrimary" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/template_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:inputType="text"
+                    android:padding="10dp"
+                    android:singleLine="true"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="14sp"
+                    tools:ignore="Autofill" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/notify_template_content"
+                    android:textColor="?attr/textColorPrimary" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/template_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:inputType="text"
+                    android:padding="10dp"
+                    android:singleLine="true"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="14sp"
+                    tools:ignore="Autofill" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/notify_template_ddl_title"
+                    android:textColor="?attr/textColorPrimary" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/template_ddl_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:inputType="text"
+                    android:padding="10dp"
+                    android:singleLine="true"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="14sp"
+                    tools:ignore="Autofill" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/notify_template_ddl_content"
+                    android:textColor="?attr/textColorPrimary" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/template_ddl_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:inputType="text"
+                    android:padding="10dp"
+                    android:singleLine="true"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="14sp"
+                    tools:ignore="Autofill" />
+
+                <!-- 测试 -->
+                <TextView
+                    android:id="@+id/test"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_button_bg_primary_light"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:padding="12dp"
+                    android:text="@string/notify_test"
+                    android:textColor="?attr/colorAccent"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>
