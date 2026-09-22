@@ -118,6 +118,9 @@ class AddEventViewModel(application: Application) : AndroidViewModel(application
     }
 
 
+    /** 备注（可选，会随事件保存并可用于通知模板 {note}） */
+    var note: String? = null
+
     fun createEvent() {
         var maxEndTime: Long = 0
         val data = mutableListOf<EventItem>()
@@ -142,6 +145,7 @@ class AddEventViewModel(application: Application) : AndroidViewModel(application
                         ei.subjectId = subject.id
                         ei.place = locationLiveData.value?.data ?: ""
                         ei.teacher = teacherLiveData.value?.data ?: ""
+                        ei.note = note
                         val se = timetable.getTimestamps(w, range.dow, range.period)
                         ei.from = Timestamp(se[0])
                         ei.to = Timestamp(se[1])
