@@ -137,6 +137,14 @@ class TimetableRepository(val application: Application) {
         return timetableDao.getTimetableClosestToTimestamp(System.currentTimeMillis())
     }
 
+    /**
+     * 同步获取某时间点所属的课表（用于课表背景等即时渲染场景）
+     */
+    @WorkerThread
+    fun getTimetableAt(ts: Long): Timetable? {
+        return timetableDao.getTimetableClosestToTimestampSync(ts)
+    }
+
     fun getTimetableCount(): LiveData<Int> {
         return timetableDao.geeTimetableCount()
     }
