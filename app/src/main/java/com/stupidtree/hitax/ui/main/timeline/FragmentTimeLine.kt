@@ -100,6 +100,13 @@ class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, Fra
                 hint?.let { HintUtils.clickHint(requireContext(), it) }
             }
         })
+        // 待办事项：长按弹出快捷操作
+        listAdapter?.setOnTaskActionListener(object : TimelineListAdapter.OnTaskActionListener {
+            override fun onTaskLongClick(v: View?, task: EventItem): Boolean {
+                showTaskActions(task)
+                return true
+            }
+        })
         binding?.extendHeader?.findViewById<RecyclerView>(R.id.top_list)?.let {  list->
             list.adapter = topListAdapter
             list.layoutManager = LinearLayoutManager(requireContext())
@@ -181,6 +188,34 @@ class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, Fra
 
     interface MainPageController {
         fun setTimelineTitleText(string: String)
+    }
+
+    /**
+     * 待办事项快捷操作：编辑 / 切换完成状态 / 删除
+     */
+    private fun showTaskActions(task: EventItem) {
+        val repository = com.stupidtree.hitax.data.repository.TaskRepository
+            .getInstance(requireActivity().application)
+        val actions = listOf(
+            getString(R.string.task_action_edit),
+            getString(if (task.done) R.string.task_action_undone else R.string.task_action_done),
+            getString(R.string.task_action_delete)
+        )
+        com.stupidtree.style.widgets.PopUpCheckableList<Int>()
+            .setListData(actions, listOf(0, 1, 2))
+            .setTitle(task.name)
+            .setOnConfirmListener(object :
+                com.stupidtree.style.widgets.PopUpCheckableList.OnConfirmListener<Int> {
+                override fun OnConfirm(title: String?, key: Int) {
+                    when (key) {
+                        0 -> com.stupidtree.hitax.ui.task.PopUpAddTask()
+                            .setTask(task)
+                            .show(parentFragmentManager, "edit_task")
+                        1 -> repository.toggleDone(task, !task.done)
+                        else -> repository.deleteTask(task)
+                    }
+                }
+            }).show(parentFragmentManager, "task_action")
     }
 
     override fun getIntentFilter(): IntentFilter {
