@@ -1229,7 +1229,7 @@
       「作者的话」：留空模板，作者可直接修改此处文字（会显示在 App 的关于页）
     -->
     <string name="yixian_author_note"><![CDATA[
-本项目无技术含量，完全基于vibe coding开发。欢迎进群交流1124204923后续应该还会更新（？
+（这里留给作者填写：可以在 app/src/main/res/values/strings.xml 中找到 yixian_author_note 并替换成你想说的话）
 ]]></string>
     <string name="yixian_about_info"><![CDATA[
 <h3>逸仙课表</h3>
@@ -1277,4 +1277,88 @@
 <h3>开源协议</h3>
 <p>MIT License（沿用原项目协议）</p>
 ]]></string>
+    <!-- ===== 待办事项 ===== -->
+    <string name="task_manager_title">待办事项</string>
+    <string name="task_add_title">新建待办</string>
+    <string name="task_edit_title">编辑待办</string>
+    <string name="task_filter_all">全部</string>
+    <string name="task_filter_pending">未完成</string>
+    <string name="task_filter_finished">已完成</string>
+    <string name="task_sort_by_due">按截止时间排序</string>
+    <string name="task_sort_by_priority">按优先级排序</string>
+    <string name="task_clear_finished_confirm">清空所有已完成的待办？</string>
+    <string name="task_empty">还没有待办，点右下角「+」添加</string>
+    <string name="task_due_format">截止：%1$s</string>
+    <string name="task_label_due">截止时间</string>
+    <string name="task_label_priority">优先级</string>
+    <string name="task_label_remind">提前提醒</string>
+    <string name="task_priority_normal">普通</string>
+    <string name="task_priority_important">重要</string>
+    <string name="task_priority_urgent">紧急</string>
+    <string name="task_remind_default">跟随全局设置</string>
+    <string name="task_remind_none">不提醒</string>
+    <string name="task_hint_name">要做什么？</string>
+    <string name="task_hint_note">备注（可选）</string>
+    <string name="task_notify_hint">到达提醒时间后会发送系统通知；重复次数与间隔在「课表设置 → 通知提醒」中统一设置。</string>
+    <string name="task_name_required">请填写待办名称</string>
+    <string name="task_saved">已保存</string>
+    <string name="task_save_failed">保存失败</string>
+    <string name="task_action_edit">编辑</string>
+    <string name="task_action_done">标记为已完成</string>
+    <string name="task_action_undone">标记为未完成</string>
+    <string name="task_action_delete">删除</string>
+    <string name="save">保存</string>
+
+    <!-- ===== 通知提醒 ===== -->
+    <string name="notify_channel_class">上课提醒</string>
+    <string name="notify_channel_event">日程提醒</string>
+    <string name="notify_channel_ddl">待办 / DDL 提醒</string>
+    <string name="notify_settings_title">通知提醒</string>
+    <string name="notify_enable">开启提醒通知</string>
+    <string name="notify_class_enable">上课前提醒</string>
+    <string name="notify_event_enable">日程开始前提醒</string>
+    <string name="notify_ddl_enable">待办 / DDL 到期前提醒</string>
+    <string name="notify_lead_class">课程 / 日程提前量</string>
+    <string name="notify_lead_ddl">待办提前量</string>
+    <string name="notify_repeat">重复提醒次数</string>
+    <string name="notify_interval">重复间隔</string>
+    <string name="notify_interval_value">%1$d 分钟</string>
+    <string name="notify_template_title">通知标题模板</string>
+    <string name="notify_template_content">通知内容模板</string>
+    <string name="notify_template_ddl_title">待办标题模板</string>
+    <string name="notify_template_ddl_content">待办内容模板</string>
+    <string name="notify_template_hint">可用变量：{name} 名称、{time} 开始时间、{place} 地点、{teacher} 教师、{minutes} 剩余分钟、{note} 备注</string>
+    <string name="notify_preview">预览效果</string>
+    <string name="notify_reset">恢复默认设置</string>
+    <string name="notify_reset_done">已恢复默认提醒设置</string>
+    <string name="notify_sound">提示音</string>
+    <string name="notify_vibrate">震动</string>
+    <string name="notify_only_school_days">仅上课日（周一至周五）提醒</string>
+    <string name="notify_permission_hint">系统通知权限未开启，点此前往设置</string>
+    <string name="notify_exact_hint">为获得精确提醒，建议允许「闹钟与提醒」权限</string>
+    <string name="notify_now">即将开始</string>
+    <string name="notify_minutes">%1$d 分钟</string>
+    <string name="notify_hours">%1$d 小时</string>
+    <string name="notify_hours_minutes">%1$d 小时 %2$d 分钟</string>
+    <string name="notify_repeat_times">%1$d 次</string>
+    <string name="notify_repeat_once">仅一次</string>
+    <string name="notify_test">发送测试通知</string>
+    <string name="notify_test_title">测试通知</string>
+    <string name="notify_test_content">如果你看到这条通知，说明提醒功能工作正常。</string>
+
+    <!-- ===== 课表背景 ===== -->
+    <string name="bg_title">课表背景</string>
+    <string name="bg_pick">选择图片</string>
+    <string name="bg_clear">清除背景</string>
+    <string name="bg_opacity">背景不透明度</string>
+    <string name="bg_dim">背景压暗程度</string>
+    <string name="bg_pick_failed">无法读取该图片，请换一张试试</string>
+    <string name="bg_cleared">已清除课表背景</string>
+    <string name="bg_applied">背景已应用</string>
+    <string name="bg_enable">显示自定义背景</string>
+    <string name="bg_hint">选一张图片作为课表底图，课程卡片会半透明覆盖在上层</string>
+    <string name="task_empty_short">暂无待办</string>
+    <string name="task_pending_count">%1$d 项未完成</string>
+    <string name="event_hint_note">备注（可选）</string>
+    <string name="notify_lead_summary">提前 %1$d 分钟提醒</string>
 </resources>
