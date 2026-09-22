@@ -66,6 +66,57 @@ class TimetableFragment :
     override fun onStart() {
         super.onStart()
         viewModel.startRefresh()
+        applyBackground()
+    }
+
+    /**
+     * 应用自定义课表背景
+     * 背景图存放在 App 私有目录，按课表 id 区分；未设置时自动隐藏图层。
+     * 查询课表与解码图片都放在子线程，避免阻塞滚动。
+     */
+    fun applyBackground() {
+        val b = binding ?: return
+        val app = activity?.application ?: return
+        val source = com.stupidtree.hitax.data.source.preference.TimetableBackgroundSource
+            .getInstance(app)
+        val startDate = viewModel.currentPageStartDate.value ?: 0L
+        Thread {
+            val timetable = try {
+                com.stupidtree.hitax.data.repository.TimetableRepository.getInstance(app)
+                    .getTimetableAt(startDate)
+            } catch (e: Exception) {
+                null
+            }
+            val id = timetable?.id
+            val enabled = id != null && source.isEnabled(id)
+            val file = if (enabled) source.backgroundFile(id!!) else null
+            val bitmap = if (file != null && file.exists()) {
+                try {
+                    android.graphics.BitmapFactory.decodeFile(file.absolutePath)
+                } catch (e: Exception) {
+                    null
+                }
+            } else null
+            val opacity = if (id != null) source.getOpacity(id) else 100
+            val dim = if (id != null) source.getDim(id) else 0
+            view?.post {
+                val bb = binding ?: return@post
+                if (bitmap == null) {
+                    bb.bgImage.visibility = View.GONE
+                    bb.bgDim.visibility = View.GONE
+                } else {
+                    bb.bgImage.setImageBitmap(bitmap)
+                    bb.bgImage.alpha = opacity / 100f
+                    bb.bgImage.visibility = View.VISIBLE
+                    if (dim > 0) {
+                        bb.bgDim.alpha = dim / 100f
+                        bb.bgDim.visibility = View.VISIBLE
+                    } else {
+                        bb.bgDim.visibility = View.GONE
+                    }
+                }
+            }
+        }.start()
     }
 
 
@@ -109,6 +160,8 @@ class TimetableFragment :
                 }
 
                 viewModel.currentIndex = position
+                // 换周后所属课表可能变化，刷新自定义背景
+                applyBackground()
             }
 
         })
