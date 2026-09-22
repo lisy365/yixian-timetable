@@ -391,6 +391,20 @@
 
         </LinearLayout>
 
+        <!-- 备注（可选，会显示在通知与详情中） -->
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/note"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/element_rounded_bar_grey_light_24"
+            android:hint="@string/event_hint_note"
+            android:inputType="textMultiLine"
+            android:maxLines="3"
+            android:padding="12dp"
+            android:textColor="?attr/textColorPrimary"
+            android:textSize="14sp"
+            tools:ignore="Autofill" />
 
     </LinearLayout>
 
