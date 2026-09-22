@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+
+    <color name="cruel_summer_primary">#00693E</color>
+    <color name="cruel_summer_fade">#2E8B62</color>
+    <color name="cruel_summer_primary_disabled">#bfd4c9</color>
+
+    <color name="subject3">#ec407a</color>
+    <color name="subject4">#FF9E00</color>
+    <color name="subject5">#7c4dff</color>
+    <color name="subject7">#536dfe</color>
+    <color name="subject8">#2196f3</color>
+    <color name="subject9">#26c6da</color>
+    <color name="subject10">#009688</color>
+    <color name="subject1">#7cba59</color>
+    <color name="subject6">#E96D71</color>
+    <color name="light_blue_50">#FFE1F5FE</color>
+    <color name="light_blue_200">#FF81D4FA</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
+    <color name="spring">#a0ff57</color>
+    <color name="summer">#57c7ff</color>
+    <color name="autumn">#ffb157</color>
+    <color name="winter">#3381ff</color>
+
+    <color name="spring_text">#60af17</color>
+    <color name="summer_text">#37a7df</color>
+    <color name="autumn_text">#ffb157</color>
+    <color name="winter_text">#01579B</color>
+
+</resources>
