@@ -274,7 +274,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 通知提醒入口 -->
+    <!-- 一键统一科目颜色 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
@@ -285,7 +285,7 @@
         android:background="?attr/textColorPrimary" />
 
     <LinearLayout
-        android:id="@+id/notification_entry"
+        android:id="@+id/unify_color"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -303,7 +303,7 @@
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
-            app:srcCompat="@drawable/ic_baseline_notifications_24"
+            app:srcCompat="@drawable/ic_baseline_palette_24"
             app:tint="?attr/colorPrimary" />
 
         <TextView
@@ -311,20 +311,20 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="@string/notify_settings_title"
+            android:text="@string/unify_subject_color"
             android:textColor="?attr/textColorPrimary" />
 
-        <TextView
-            android:id="@+id/notification_summary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/textColorSecondary"
-            android:textSize="12sp" />
+        <View
+            android:id="@+id/unify_color_dot"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/element_round_primary"
+            android:backgroundTint="?attr/colorPrimary" />
 
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="6dp"
             app:srcCompat="@drawable/ic_baseline_keyboard_arrow_right_24"
             app:tint="?attr/colorPrimaryDisabled" />
     </LinearLayout>
