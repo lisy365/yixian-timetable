@@ -351,6 +351,7 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
         }
 
         binding?.adeBtDone?.setOnClickListener {
+            viewModel.note = binding?.note?.text?.toString()?.trim()?.ifEmpty { null }
             viewModel.createEvent()
             dismiss()
         }
