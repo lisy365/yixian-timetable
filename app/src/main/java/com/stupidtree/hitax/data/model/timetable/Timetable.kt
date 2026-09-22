@@ -98,21 +98,35 @@ class Timetable {
     }
 
 
-    fun getDefaultTimeStructure():List<TimePeriodInDay>{
-        val res = mutableListOf<TimePeriodInDay>()
-        res.add(TimePeriodInDay(TimeInDay(8,30), TimeInDay(9,20)))
-        res.add(TimePeriodInDay(TimeInDay(9,25),TimeInDay(10,15)))
-        res.add(TimePeriodInDay(TimeInDay(10,30),TimeInDay(11,20)))
-        res.add(TimePeriodInDay(TimeInDay(11,25),TimeInDay(12,15)))
-        res.add(TimePeriodInDay(TimeInDay(14,0),TimeInDay(14,50)))
-        res.add(TimePeriodInDay(TimeInDay(14,55),TimeInDay(15,45)))
-        res.add(TimePeriodInDay(TimeInDay(16,0),TimeInDay(16,50)))
-        res.add(TimePeriodInDay(TimeInDay(16,55),TimeInDay(17,45)))
-        res.add(TimePeriodInDay(TimeInDay(18,45),TimeInDay(19,35)))
-        res.add(TimePeriodInDay(TimeInDay(19,40),TimeInDay(20,30)))
-        res.add(TimePeriodInDay(TimeInDay(20,45),TimeInDay(21,35)))
-        res.add(TimePeriodInDay(TimeInDay(21,40),TimeInDay(22,30)))
-        return res
+    /**
+     * 默认作息时间（中山大学标准作息，按「节」存：下标 i 即第 i+1 节）
+     *
+     * 与 SYSU 教务课表结构保持一致，见 `SysuTimetableParser.buildScheduleStructureFromSections()`：
+     *   上午 1-2 节 08:00-09:40、3-4 节 10:00-11:40
+     *   下午 5-6 节 14:30-16:10、7-8 节 16:20-18:00
+     *   晚上 9-10 节 19:00-20:40、11-12 节 20:50-22:30
+     * 各校区/学期可能有微调，用户可在「课表设置」中逐节修改。
+     */
+    fun getDefaultTimeStructure(): List<TimePeriodInDay> {
+        val ranges = listOf(
+            (8 to 0) to (8 to 45),
+            (8 to 55) to (9 to 40),
+            (10 to 0) to (10 to 45),
+            (10 to 55) to (11 to 40),
+            (14 to 30) to (15 to 15),
+            (15 to 25) to (16 to 10),
+            (16 to 20) to (17 to 5),
+            (17 to 15) to (18 to 0),
+            (19 to 0) to (19 to 45),
+            (19 to 55) to (20 to 40),
+            (20 to 50) to (21 to 35),
+            (21 to 45) to (22 to 30),
+            (22 to 40) to (23 to 25),
+            (23 to 35) to (0 to 20)
+        )
+        return ranges.map { (from, to) ->
+            TimePeriodInDay(TimeInDay(from.first, from.second), TimeInDay(to.first, to.second))
+        }
     }
 
 
