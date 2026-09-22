@@ -43,6 +43,26 @@ class TimelineListAdapter(
         this.onHintConfirmedListener = onHintConfirmedListener
     }
 
+    /** 待办事项的快捷操作（长按卡片触发） */
+    private var onTaskActionListener: OnTaskActionListener? = null
+
+    fun setOnTaskActionListener(l: OnTaskActionListener?) {
+        onTaskActionListener = l
+    }
+
+    interface OnTaskActionListener {
+        /** @return 是否已消费该长按事件 */
+        fun onTaskLongClick(v: View?, task: EventItem): Boolean
+    }
+
+    /** 已完成的待办折叠到列表末尾 */
+    private fun sortedForDisplay(list: List<EventItem>): List<EventItem> {
+        return list.sortedWith(
+            compareBy<EventItem> { if (it.isTask() && it.done) 1 else 0 }
+                .thenBy { it.from.time }
+        )
+    }
+
 
     private fun refreshNowAndNextEvent(todayEvents: List<EventItem>) {
         var changedNow = false
@@ -139,11 +159,35 @@ class TimelineListAdapter(
                 // else timelineHolder.timeline.setVisibility(View.VISIBLE);
             }
             if (position >= mBeans.size || position < 0) return
-            timelineHolder.tv_name.text = mBeans[position].name
-            if (timelineHolder.tv_time != null) timelineHolder.tv_time.setText(
-                    TextTools.getChatTimeText(mContext, mBeans[position].from)
-                            + "-" + TextTools.getChatTimeText(mContext, mBeans[position].to)
-            )
+            val item = mBeans[position]
+            timelineHolder.tv_name.text = item.name
+            // 待办事项：展示截止时间，完成后加删除线
+            if (item.isTask()) {
+                if (timelineHolder.tv_time != null) {
+                    timelineHolder.tv_time.text = mContext.getString(
+                        R.string.task_due_format,
+                        java.text.SimpleDateFormat("M月d日 HH:mm", java.util.Locale.getDefault())
+                            .format(item.from)
+                    )
+                }
+                timelineHolder.tv_name.paintFlags =
+                    if (item.done) timelineHolder.tv_name.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
+                    else timelineHolder.tv_name.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                timelineHolder.itemCard.alpha = if (item.done) 0.55f else 1f
+                if (timelineHolder.tv_place != null) {
+                    val note = item.note
+                    timelineHolder.tv_place!!.text =
+                        if (note.isNullOrBlank()) mContext.getString(R.string.task_manager_title) else note
+                }
+            } else if (timelineHolder.tv_time != null) {
+                timelineHolder.tv_time.setText(
+                        TextTools.getChatTimeText(mContext, item.from)
+                                + "-" + TextTools.getChatTimeText(mContext, item.to)
+                )
+                timelineHolder.tv_name.paintFlags =
+                    timelineHolder.tv_name.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                timelineHolder.itemCard.alpha = 1f
+            }
             if (timelineHolder.tv_duration != null) {
                 val duration: Int =
                         (((mBeans[position].to.time - mBeans[position].from.time) / 1000).toInt())
@@ -179,6 +223,14 @@ class TimelineListAdapter(
                 timelineHolder.itemCard.setOnLongClickListener { v ->
                     mOnItemLongClickListener!!.onItemLongClick(mBeans[position], v, position)
                     true
+                }
+            } else if (onTaskActionListener != null) {
+                timelineHolder.itemCard.setOnLongClickListener { v ->
+                    val item = mBeans[position]
+                    if (item.isTask()) {
+                        v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                        onTaskActionListener!!.onTaskLongClick(v, item)
+                    } else false
                 }
             }
         } catch (e: Exception) {
