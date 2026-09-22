@@ -13,7 +13,7 @@
   <img alt="build" src="https://img.shields.io/badge/build-Gradle%208.7%20%2B%20JDK%2017-00693E"/>
 </p>
 
-安装包：[release/逸仙课表-v1.0.0.apk](release/逸仙课表-v1.0.0.apk)
+安装包：[release/yixian-timetable-v1.0.0.apk](release/yixian-timetable-v1.0.0.apk) ｜ [Release 页面](https://github.com/lisy365/yixian-timetable/releases/tag/v1.0.0)
 
 ---
 
