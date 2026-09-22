@@ -7,6 +7,7 @@ import android.view.View
 import com.bumptech.glide.Glide
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.repository.EASRepository
+import com.stupidtree.hitax.data.repository.TaskRepository
 import com.stupidtree.hitax.databinding.FragmentNavigationBinding
 import com.stupidtree.style.base.BaseFragment
 import com.stupidtree.hitax.ui.eas.classroom.EmptyClassroomActivity
@@ -14,6 +15,7 @@ import com.stupidtree.hitax.ui.eas.exam.ExamActivity
 import com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity
 import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
 import com.stupidtree.hitax.ui.eas.score.ScoreInquiryActivity
+import com.stupidtree.hitax.ui.task.TaskManagerActivity
 import com.stupidtree.hitax.ui.news.lecture.ActivityLecture
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
@@ -44,6 +46,21 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
         viewModel.unreadMessageLiveData.observe(this) {
             // θ社区消息角标随社区入口一并移除（中大不可用）
         }
+        // 待办事项入口
+        binding?.cardTask?.setOnClickListener {
+            ActivityUtils.startActivity(requireContext(), TaskManagerActivity::class.java)
+        }
+        TaskRepository.getInstance(requireActivity().application).getPendingCount()
+            .observe(this) { count ->
+                if (count > 0) {
+                    binding?.taskBadge?.visibility = View.VISIBLE
+                    binding?.taskBadge?.text = count.toString()
+                    binding?.taskSubtitle?.text = getString(R.string.task_pending_count, count)
+                } else {
+                    binding?.taskBadge?.visibility = View.GONE
+                    binding?.taskSubtitle?.setText(R.string.task_empty_short)
+                }
+            }
         binding?.cardTimetable?.setOnClickListener {
             ActivityUtils.startTimetableManager(requireContext())
         }
