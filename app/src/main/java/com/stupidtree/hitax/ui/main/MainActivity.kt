@@ -28,6 +28,7 @@ import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
 import com.stupidtree.hitax.ui.main.timeline.FragmentTimeLine
 import com.stupidtree.hitax.ui.main.timetable.TimetableFragment
 import com.stupidtree.hitax.ui.main.timetable.panel.FragmentTimetablePanel
+import com.stupidtree.hitax.ui.task.FragmentTask
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
@@ -159,11 +160,12 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     override fun initViews() {
         setUpDrawer()
         //  binding.title.text = binding.navView.menu.getItem(0).title
-        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, 3) {
+        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, 4) {
             override fun initItem(position: Int): Fragment {
                 return when (position) {
                     0 -> FragmentTimeLine()
                     1 -> TimetableFragment()
+                    2 -> FragmentTask()
                     else -> NavigationFragment()
                 }
             }
@@ -172,7 +174,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 //super.destroyItem(container, position, `object`)
             }
         }
-        binding.pager.offscreenPageLimit = 3
+        binding.pager.offscreenPageLimit = 4
         binding.pager.addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int,
@@ -183,24 +185,11 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
             override fun onPageSelected(position: Int) {
                 binding.navView.itemActiveIndex = position//.getItem(position).isChecked = true
-                when (position) {
-                    0 -> {
-                        binding.timetableLayout.visibility = GONE
-                        binding.navigationLayout.visibility = GONE
-                        binding.todayLayout.visibility = VISIBLE
-                    }
-                    1 -> {
-                        binding.timetableLayout.visibility = VISIBLE
-                        binding.todayLayout.visibility = GONE
-                        binding.navigationLayout.visibility = GONE
-                    }
-                    2 -> {
-                        binding.timetableLayout.visibility = GONE
-                        binding.todayLayout.visibility = GONE
-                        binding.navigationLayout.visibility = VISIBLE
-                    }
-
-                }
+                // 顶部标题栏：只有「功能中心」显示设置/抽屉按钮，其它 Tab 显示各自标题
+                binding.navigationLayout.visibility = if (position == 3) VISIBLE else GONE
+                binding.todayLayout.visibility = if (position == 0) VISIBLE else GONE
+                binding.timetableLayout.visibility = if (position == 1) VISIBLE else GONE
+                binding.taskLayout.visibility = if (position == 2) VISIBLE else GONE
 //                val item = binding.navView.menu.getItem(position)
 //                item.isChecked = true
 //                binding.title.text = item.title
@@ -234,6 +223,12 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
         binding.addEvent.setOnClickListener {
             PopupAddEvent().show(supportFragmentManager, "add_event")
+        }
+
+        // 待办页标题栏的「+」：新建待办
+        binding.taskAdd.setOnClickListener {
+            com.stupidtree.hitax.ui.task.PopUpAddTask()
+                .show(supportFragmentManager, "add_task")
         }
 
         binding.switchTheme.setOnClickListener {
