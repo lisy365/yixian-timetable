@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/backgroundColorBottom"
+    android:nestedScrollingEnabled="true"
+    tools:context=".ui.main.MainActivity"
+    tools:openDrawer="end">
+
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#00000000"
+            android:fitsSystemWindows="true"
+            app:elevation="0dp">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="64dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/navigation_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/navigation_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/title_navigation"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <ImageView
+                            android:id="@+id/switch_theme"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginEnd="-8dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="19dp"
+                            android:theme="@style/button_ripple_control"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/ic_baseline_add_24"
+                            app:tint="?attr/textColorSecondary" />
+
+                        <ImageView
+                            android:id="@+id/drawer_button"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="-6dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="16dp"
+                            android:theme="@style/button_ripple_control"
+                            android:tint="?attr/textColorSecondary"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/ic_baseline_menu_24" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/today_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/today_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:text="@string/maintab_today"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/timetable_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/timetable_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="TextView"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/timetable_name_card"
+                            android:layout_width="wrap_content"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="12dp"
+                            android:alpha="0.8"
+                            android:backgroundTint="?attr/backgroundColorBottomAsTint"
+                            android:backgroundTintMode="src_over"
+                            app:cardBackgroundColor="?attr/colorControlNormal"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <TextView
+                                android:id="@+id/timetable_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:alpha="0.8"
+                                android:paddingStart="6dp"
+                                android:paddingTop="3dp"
+                                android:paddingEnd="6dp"
+                                android:paddingBottom="3dp"
+                                android:text="2021春季"
+                                android:textColor="?attr/textColorPrimary"
+                                android:textSize="12sp" />
+                        </androidx.cardview.widget.CardView>
+
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <ImageView
+                            android:id="@+id/timetable_setting"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginEnd="-8dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="16dp"
+                            android:theme="@style/button_ripple_control"
+                            android:tint="?attr/textColorSecondary"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/ic_theme" />
+
+                        <ImageView
+                            android:id="@+id/add_event"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="-6dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="16dp"
+                            android:theme="@style/button_ripple_control"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/ic_baseline_add_24"
+                            app:tint="?attr/textColorSecondary" />
+
+                    </LinearLayout>
+
+                    <!--                <ImageView-->
+                    <!--                    android:id="@+id/add"-->
+                    <!--                    android:layout_width="wrap_content"-->
+                    <!--                    android:layout_height="wrap_content"-->
+                    <!--                    android:layout_gravity="end"-->
+
+                    <!--                    android:clickable="true"-->
+                    <!--                    android:foreground="?attr/selectableItemBackgroundBorderless"-->
+                    <!--                    android:padding="16dp"-->
+                    <!--                    app:srcCompat="@drawable/ic_baseline_add_circle_outline_24" />-->
+
+                </LinearLayout>
+
+            </androidx.appcompat.widget.Toolbar>
+
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="56dp"
+            android:overScrollMode="never"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
+
+        <me.ibrahimsn.lib.SmoothBottomBar
+            android:id="@+id/nav_view"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_gravity="bottom"
+            app:backgroundColor="?attr/backgroundColorBottom"
+            app:duration="180"
+            app:iconSize="21dp"
+            app:iconTint="?attr/colorPrimaryDisabled"
+            app:iconTintActive="?attr/colorPrimary"
+            app:indicatorColor="?attr/backgroundIconColorBottom"
+            app:indicatorRadius="24dp"
+            app:itemPadding="8dp"
+            app:menu="@menu/main_bottom_nav_menu"
+            app:sideMargins="24dp"
+            app:textColor="?attr/colorPrimary"
+            app:textSize="12sp" />
+
+        <!--        app:itemFontFamily=""-->
+
+        <!--        app:activeItem=""-->
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+    <LinearLayout
+        android:layout_width="260dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="?attr/backgroundColorSecond"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="16dp"
+            android:alpha="0.8"
+            android:background="?android:attr/listDivider" />
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/drawer_navigationview"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="bottom|center|start"
+            android:layout_weight="1"
+            android:background="#00000000"
+            android:overScrollMode="never"
+            app:elevation="0dp"
+            app:itemHorizontalPadding="32dp"
+            app:itemIconPadding="16dp"
+            app:itemIconSize="20dp"
+            app:itemIconTint="?attr/colorPrimary"
+            app:itemMaxLines="1"
+            app:itemTextAppearance="@style/TextAppearance.AppCompat.Button"
+            app:itemTextColor="?attr/textColorSecondary"
+            app:menu="@menu/drawer_main">
+
+        </com.google.android.material.navigation.NavigationView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:orientation="horizontal">
+
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.drawerlayout.widget.DrawerLayout>
