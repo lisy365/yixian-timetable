@@ -1,0 +1,36 @@
+*.iml
+.gradle
+/local.properties
+/.idea/*
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+/.idea/
+
+# 各模块构建产物
+*/build/
+**/build/
+app/release/
+
+# 本机测试与调试脚本
+_scratch/
+_toolchain/
+_gradlehome/
+_androidhome/
+_home/
+_npmcache/
+deliver/
+build.cmd
+
+# 日志与临时文件
+*.log
+*.hprof
