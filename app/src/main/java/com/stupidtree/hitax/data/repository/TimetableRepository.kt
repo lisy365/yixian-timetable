@@ -139,10 +139,17 @@ class TimetableRepository(val application: Application) {
 
     /**
      * 同步获取某时间点所属的课表（用于课表背景等即时渲染场景）
+     *
+     * 优先取 startTime <= ts 的最近一套；若 ts 早于所有课表（例如第一周之前、
+     * 或寒暑假翻到了开学前），回退到时间上最接近的一套，避免背景显示不出来。
      */
     @WorkerThread
     fun getTimetableAt(ts: Long): Timetable? {
-        return timetableDao.getTimetableClosestToTimestampSync(ts)
+        val covering = timetableDao.getTimetableCoveringTimestampSync(ts)
+        if (covering != null) return covering
+        // 早于所有课表：取最早的一套；否则取 startTime 最接近的一套
+        return timetableDao.getEarliestTimetableSync()
+            ?: timetableDao.getTimetableClosestToTimestampSync(ts)
     }
 
     fun getTimetableCount(): LiveData<Int> {
