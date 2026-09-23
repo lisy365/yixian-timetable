@@ -124,6 +124,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         // 每次回到前台：确保通知渠道存在，并滚动重排提醒（幂等）
         com.stupidtree.hitax.utils.NotificationUtils.ensureChannels(this)
         com.stupidtree.hitax.utils.ReminderScheduler.rescheduleAll(this)
+        // 用户开过「后台保活」的话，回到前台时把它拉起来（服务可能被系统回收过）
+        com.stupidtree.hitax.utils.KeepAliveService.startIfEnabled(this)
         requestNotificationPermissionIfNeeded()
         // 逸仙课表：原项目的在线检查更新服务（hita.store）不适用于中大，已停用
     }
