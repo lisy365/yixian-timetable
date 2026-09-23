@@ -7,13 +7,13 @@
 </p>
 
 <p align="left">
-  <img alt="version" src="https://img.shields.io/badge/version-1.0.2-00693E"/>
+  <img alt="version" src="https://img.shields.io/badge/version-1.0.3-00693E"/>
   <img alt="platform" src="https://img.shields.io/badge/Android-6.0%2B%20(API%2023%2B)-00693E"/>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-00693E"/>
   <img alt="build" src="https://img.shields.io/badge/build-Gradle%208.7%20%2B%20JDK%2017-00693E"/>
 </p>
 
-安装包：[release/yixian-timetable-v1.0.2.apk](release/yixian-timetable-v1.0.2.apk) ｜ [Release 页面](https://github.com/lisy365/yixian-timetable/releases/tag/v1.0.2)
+安装包：[release/yixian-timetable-v1.0.3.apk](release/yixian-timetable-v1.0.3.apk) ｜ [Release 页面](https://github.com/lisy365/yixian-timetable/releases/tag/v1.0.3)
 
 ---
 
@@ -107,6 +107,17 @@
 | 应用图标 / 主题色 | 更换为逸仙课表图标与中大绿 `#00693E` |
 
 </details>
+
+---
+
+## 更新日志
+
+| 版本 | 内容 |
+| --- | --- |
+| v1.0.0 | SYSU 适配首版：统一身份认证 WebView 登录、按周抓取并合并的课表导入、成绩、考试、本地搜索、逸仙课表品牌与中大绿主题 |
+| v1.0.1 | 新增课表背景自定义、待办事项管理、提醒通知（可自定义提前量 / 重复 / 文案模板）；修复登录弹窗缺「登录」按钮、开屏与关于页仍用原项目图标 |
+| v1.0.2 | 修复第一周及开学前背景不显示；通知提醒移入「功能中心」设置菜单；待办移至底部导航栏；新增一键统一科目颜色；导入课表默认作息修正为中大标准时间表 |
+| v1.0.3 | 修复待办在「今日」时间轴不显示（现在当天到期的待办与未来未完成的待办都会出现在时间轴上，并使用专门的待办卡片）；修复教务登录页在弹窗内无法上下滑动；修正中大作息「第 3 节 10:10 开始、第 4 节 11:50 结束」 |
 
 ---
 
