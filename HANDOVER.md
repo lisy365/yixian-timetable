@@ -228,6 +228,21 @@ DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同
 7. **不要提交**：`local.properties`、`*/build/`、`_scratch/`、`_toolchain/`、`_gradlehome/`、`_androidhome/`、`_home/`、`_npmcache/`（`.gitignore` 已覆盖）。
    `release/*.apk` 需要提交（Release 下载链接指向仓库内文件）。
 8. 打包前确认 `applicationId` 仍是 `com.stupidtree.hitax.yixian`，否则用户覆盖安装会变成两个 App。
+9. **「今日」时间轴的视图类型兜底值不能是 `FOOT`**（`TimelineListAdapter.getItemViewType`）：
+   `FOOT` 对应的是「页脚空行」布局（无 `tl_card`、无 `timeline` id），而 `onBindViewHolder` 也不处理 `emptyHolder`，
+   所以任何掉进 `FOOT` 的事件都会变成一行 ~88dp 的空白 + 断掉的时间轴。
+   历史 bug：待办是 `type = OTHER` 且 `from == to`，未到点时 `TimeTools.passed()` 为 false、又不是 CLASS/EXAM，
+   于是落进 `FOOT` → 正是「待办在今日显示错误、无法显示在时间轴上」。兜底必须是可见卡片类型（现在统一返回 `CLASS`）。
+10. **待办的两条时间语义**：`from == to` 是「截止时刻」而不是时间段。因此：
+   - `EventItem.containsTimeStamp()` 对它恒为 false → 永远不会成为 `nowEvent`；
+   - `refreshNowAndNextEvent()` 里要显式跳过待办，否则表头会显示「距离<待办>还有 N 分钟」；
+   - 待办在时间轴上用专门的卡片 `dynamic_timeline_card_task.xml`（`isTask()` → 视图类型 `TASK = 17`），
+     `dynamic_timeline_card_passed.xml` 里 `tl_tv_time` 是 `gone`、也没有 `tl_tv_place`，拿它渲染待办会丢截止时间与备注。
+11. **「今日」列表要合并两路数据**：当天 `00:00~24:00` 的事件（`getEventsDuring`）+ **明天及以后未完成的待办**
+   （`EventItemDao.getPendingTasksAfter`）。装配规则在纯函数 `ui/main/timeline/TimelineTasks.kt`（可离线单测）。
+12. **BottomSheet 里的 WebView 要禁止弹窗拖拽**：`BottomSheetBehavior` 会在 `onInterceptTouchEvent` 抢走竖直手势，
+   导致登录页滑不动。现用 `ui/widgets/ScrollableWebView`（按 DOWN/UP 请求祖先不要拦截）+ `behavior.isDraggable = false`，
+   弹窗另给「取消」入口。以后凡是把可滚动内容放进 BottomSheet，都要检查这一条。
 
 ---
 
@@ -238,3 +253,4 @@ DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同
 | v1.0.0 | SYSU 适配首版：统一身份认证 WebView 登录、按周抓取并合并的课表导入、成绩、考试、本地搜索、逸仙课表品牌与中大绿主题 |
 | v1.0.1 | 新增课表背景自定义、待办事项管理、提醒通知（可自定义提前量/重复/文案模板）；修复登录弹窗缺「登录」按钮、开屏与关于页仍用原项目图标 |
 | v1.0.2 | 修复第一周及开学前背景不显示；通知提醒移入「功能中心」设置菜单；待办移至底部导航栏；新增一键统一科目颜色（自选颜色）；导入课表默认作息修正为中大标准时间表；README 写入作者的话 |
+| v1.0.3 | 修复待办在「今日」时间轴不显示（根因是 `getItemViewType` 兜底 `FOOT`；同时把明天及以后的未完成待办并入时间轴，新增待办专用卡片）；修复教务登录页在弹窗内无法上下滑动；修正中大作息「第 3 节 10:10 开始、第 4 节 11:50 结束」 |
