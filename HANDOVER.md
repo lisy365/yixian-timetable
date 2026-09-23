@@ -74,7 +74,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\dshproject\hita\_scr
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\dshproject\hita\_scratch\harness\run.ps1"
 ```
 
-覆盖：会话/Cookie 解析、周次解析、课表单元格解析（真实 `kcmc:…;;rkjs:…;;skrq:第N周/…` 格式）、逐周合并、成绩/考试解析、待办模型、通知文案模板、提醒触发时间计算、中大默认作息表。当前 **98 项断言全绿**。
+覆盖：会话/Cookie 解析、周次解析、课表单元格解析（真实 `kcmc:…;;rkjs:…;;skrq:第N周/…` 格式）、逐周合并、成绩/考试解析、待办模型、通知文案模板、提醒触发时间计算、中大默认作息表。当前 **115 项断言全绿**。
+
+v1.0.4 起另有一个独立入口 `_scratch/harness/HarnessV104.kt`（`run.ps1` 会自动跑），
+覆盖新增的两块纯逻辑：调色盘换算 `com.stupidtree.style.widgets.ColorMath`（HSV / `#RRGGBB` 解析与格式化）
+与保活排期 `com.stupidtree.hitax.utils.KeepAlivePlan`（触发时刻、重排间隔、精确闹钟判定），**69 项断言全绿**。
+这两个类都刻意不引用 `android.graphics` / Android API，所以能直接在 JVM 里跑 —— 新加纯逻辑请沿用这个做法。
 
 新增功能请同时加断言（`_scratch/harness/Harness.kt`；纯 JVM 桩在 `_scratch/harness/stub/`，安卓 Log/TextUtils/org.json/Room 注解都有 shim）。
 若改了 mock 数据结构，同步改 `_scratch/probe/mock_jwxt.js`。
@@ -254,3 +259,55 @@ DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同
 | v1.0.1 | 新增课表背景自定义、待办事项管理、提醒通知（可自定义提前量/重复/文案模板）；修复登录弹窗缺「登录」按钮、开屏与关于页仍用原项目图标 |
 | v1.0.2 | 修复第一周及开学前背景不显示；通知提醒移入「功能中心」设置菜单；待办移至底部导航栏；新增一键统一科目颜色（自选颜色）；导入课表默认作息修正为中大标准时间表；README 写入作者的话 |
 | v1.0.3 | 修复待办在「今日」时间轴不显示（根因是 `getItemViewType` 兜底 `FOOT`；同时把明天及以后的未完成待办并入时间轴，新增待办专用卡片）；修复教务登录页在弹窗内无法上下滑动；修正中大作息「第 3 节 10:10 开始、第 4 节 11:50 结束」 |
+| v1.0.4 | 修复教务登录页点输入框弹不出软键盘；替换残留的原项目图标；科目颜色选择重做为色盘 + 渐变滑杆 + 色号输入框；新增后台保活机制（详见第 6 节第 13~16 条） |
+
+---
+
+## 8. v1.0.4 新增/变更速查（下次改这几块前先看）
+
+### 8.1 软键盘（教务登录）
+- 根因：`InputMethodManager.showSoftInput(view, …)` 只有在 `mServedView === view`
+  （即该 WebView 自己是**窗口内获得焦点的 View**）时才生效，否则**直接返回 false**。
+  在 `BottomSheetDialog` 里初始焦点常落在「登录」按钮上，WebView 不是焦点 View，
+  于是 Chromium 内部的 `showSoftKeyboard()` 被系统丢掉 → 「点输入框没键盘」。
+- 修复位置：
+  - `ui/widgets/ScrollableWebView.kt` —— `init` 里设 `isFocusableInTouchMode`，
+    `ACTION_DOWN/UP` 调 `grabImeFocus()`（优先普通 `requestFocus`，失败才 `requestFocusFromTouch`，
+    避免把整个窗口踢出 touch mode 导致按钮出现焦点描边）；
+  - `ui/eas/login/PopUpLoginEAS.kt` —— `onStart` 里 `clearFlags(FLAG_NOT_FOCUSABLE or FLAG_ALT_FOCUSABLE_IM)`
+    + `SOFT_INPUT_ADJUST_RESIZE`，并在弹窗出现 / 页面加载完成后把焦点交给 WebView；
+  - `utils/SysuWebViewUtils.kt` —— `FOCUS_SCROLL_JS`：`focusin` 时把输入框滚到可视区中部。
+    **为什么需要**：`BottomSheetDialog.onAttachedToWindow` 会调
+    `WindowCompat.setDecorFitsSystemWindows(window, false)`，此后 `adjustResize/adjustPan` 都失效，
+    键盘会直接盖住页面，只能靠脚本滚动兜底。
+- 以后凡是「Dialog / BottomSheet 里放 WebView 或输入框」，都要检查「谁是焦点 View」这一条。
+
+### 8.2 调色盘
+- `style/.../widgets/PopUpColorPicker.kt` 对外 API 没变
+  （`initColor(Int)` / `setOnColorSelectListener` / `OnColorSelectedListener.onSelected(Int)`），
+  两个调用点（`TimetableDetailActivity`、`FragmentTimetablePanel`）无需改动。
+- 新增同模块的 `ColorMath.kt`（纯函数：HSV 互转、`#RGB/#RRGGBB/#AARRGGBB` 解析、`#RRGGBB` 格式化）与
+  `ColorWheelView.kt`（色盘：角度=色相、半径=饱和度）、`ColorSliderView.kt`（渐变滑杆）。
+- 两个自绘 View 在 `ACTION_DOWN` 都会 `requestDisallowInterceptTouchEvent(true)`，
+  否则拖动会被 `BottomSheetBehavior` 当成收起弹窗。
+- `FragmentTimetablePanel` 第一次打开时传进来的 `unifyColor` 是 `0`（全透明黑），
+  `ColorMath.normalizeInputColor()` 负责补成不透明，别再让调色盘开在一个看不见的颜色上。
+
+### 8.3 后台保活（通知按时送达）
+- `KeepAlivePlan.kt`（纯函数）：触发时刻、7 天窗口、**每天一次**的保活重排间隔、精确闹钟判定。
+- 保活三件套：
+  1. **每天重排**（`ReminderScheduler.scheduleInternal` 用 `KeepAlivePlan.nextRearmAt(now)`）——
+     旧实现是 6 天才排一次，那一颗闹钟一丢就永久失效；
+  2. **前台服务** `utils/KeepAliveService.kt`（默认关闭，在「通知提醒」里开关，渠道 `yixian_channel_keepalive`，
+     每 15 分钟自检重排），`BootReceiver` / `MainActivity.onStart` 会按偏好自动拉起；
+  3. **短时唤醒锁**：`AlarmReceiver` 在 `goAsync()` 之后持有 30s `PARTIAL_WAKE_LOCK`，
+     保证「读库 → 发通知」跑完；`ACTION_RESCHEDULE` 分支不持锁（重排是异步的）。
+- 新增 UI：通知设置面板底部「后台保活」开关 +「闹钟与提醒权限」状态行
+  （`Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM`）+「电池优化白名单」入口。
+  **Android 14 起 targetSdk<33 的应用默认拿不到精确闹钟权限**，那时 `setAlarmSafely` 会静默退化成
+  `setAndAllowWhileIdle`（可能晚几十分钟）—— 这一行就是给用户看状态的。
+- `BootReceiver` 现在还监听 `TIME_SET` / `TIMEZONE_CHANGED` /
+  `SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED`。
+- 提醒的 PendingIntent 现在带 `data`（`yixian://remind/<index>/<eventId>`）：
+  只靠请求码时，两个 id 的 `hashCode` 低 16 位相同会互相覆盖。
+  旧形态（无 `data`）在 `legacyPendingIntent()` 里保留，用于升级后清理幽灵闹钟 —— **别删**。
