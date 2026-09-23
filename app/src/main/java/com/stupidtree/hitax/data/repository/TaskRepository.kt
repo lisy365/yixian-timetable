@@ -46,6 +46,14 @@ class TaskRepository private constructor(private val application: Application) {
     /** 未完成的待办数量（用于入口角标） */
     fun getPendingCount(): LiveData<Int> = eventItemDao.getPendingTaskCount()
 
+    /**
+     * 未完成、且截止时间不早于 [fromT] 的待办（LiveData）
+     *
+     * 「今日」时间轴用它把未来的待办也并进来显示。
+     */
+    fun getPendingTasksAfter(fromT: Long): LiveData<List<EventItem>> =
+        eventItemDao.getPendingTasksAfter(fromT)
+
     /** 同步读取全部待办 */
     @WorkerThread
     fun getAllTasksSync(): List<EventItem> = eventItemDao.getTasksSync()
