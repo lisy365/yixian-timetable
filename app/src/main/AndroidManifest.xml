@@ -16,6 +16,11 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- 后台保活：前台服务 + 提醒送达期间的短时唤醒锁 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:name=".HApplication"
@@ -38,7 +43,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- 开机 / 应用更新后恢复提醒排期 -->
+        <!-- 开机 / 应用更新 / 系统时间与时区变化 / 精确闹钟权限变化后恢复提醒排期 -->
         <receiver
             android:name=".utils.BootReceiver"
             android:exported="true">
@@ -46,8 +51,21 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <!-- 后台保活前台服务（用户在「通知提醒」中开启后常驻） -->
+        <service
+            android:name=".utils.KeepAliveService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="keep_reminder_schedule_alive" />
+        </service>
 
         <receiver
             android:name=".ui.widgets.today.normal.TodayWidget"
