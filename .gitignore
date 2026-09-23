@@ -33,3 +33,9 @@ build.cmd
 # 日志与临时文件
 *.log
 *.hprof
+
+# 凭据与本地配置（切勿提交）
+.gh-token
+*.token
+.gh-token.local
+HANDOVER.local.md
