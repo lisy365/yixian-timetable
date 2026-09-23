@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import com.stupidtree.hitax.data.AppDatabase
 import com.stupidtree.hitax.data.model.timetable.EventItem
@@ -15,14 +16,15 @@ import java.util.concurrent.Executors
  *
  * 策略：滚动窗口。每次调度扫描「当前时间 ~ 未来 N 天」内的事件，
  * 为每个事件按用户设置（提前量 + 重复次数 + 重复间隔）安排精确闹钟，
- * 并在窗口末尾安排一次「重新调度」闹钟，保证长期运行不漏提醒。
+ * 并安排一颗**每天触发一次**的「重新排期」保活闹钟，保证长期运行不漏提醒。
  *
- * 触发点：App 启动、导入课表后、日程/待办增删改、开机与 App 更新后、用户修改提醒设置后。
+ * 触发点：App 启动、导入课表后、日程/待办增删改、开机与 App 更新后、
+ * 系统时间/时区变化后、精确闹钟权限变化后、用户修改提醒设置后。
+ *
+ * 「保活」说明见 [KeepAlivePlan]：不依赖常驻前台服务也能自愈，
+ * 需要更强的保障时用户可在「通知提醒」里开启 [KeepAliveService]。
  */
 object ReminderScheduler {
-
-    /** 单次扫描的时间窗口（天） */
-    private const val WINDOW_DAYS = 7
 
     private const val SP_ALARMS = "yixian_alarms"
     private const val SP_TASK_LEAD = "yixian_task_lead"
@@ -50,6 +52,21 @@ object ReminderScheduler {
         else sp.edit().putInt(eventId, value).apply()
     }
 
+    /**
+     * 当前是否已经拿到「精确闹钟」能力。
+     * Android 12+ 需要 SCHEDULE_EXACT_ALARM；被拒绝时提醒会退化成不精确闹钟。
+     */
+    fun canScheduleExact(app: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+        return try {
+            val am = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            am.canScheduleExactAlarms()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
     /** 用指定的提前量单独为某个事件安排提醒（用于单项自定义提前量） */
     fun scheduleEventWithLead(context: Context, event: EventItem, leadMinutes: Int) {
         val app = context.applicationContext
@@ -60,13 +77,14 @@ object ReminderScheduler {
                 if (!prefs.isEnabled) return@execute
                 val now = System.currentTimeMillis()
                 val am = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                val base = event.from.time - leadMinutes * 60_000L
-                val intervalMs = prefs.repeatInterval * 60_000L
                 val repeat = prefs.repeatCount.coerceIn(0, MAX_REPEAT)
                 val scheduled = mutableListOf<Int>()
                 for (i in 0..repeat) {
-                    val triggerAt = base - i * intervalMs
-                    if (triggerAt < now || triggerAt > event.from.time) continue
+                    // 触发时刻的计算抽成纯函数 KeepAlivePlan，便于离线单测
+                    val triggerAt = KeepAlivePlan.triggerTimeAt(
+                        event.from.time, leadMinutes, i, prefs.repeatInterval
+                    )
+                    if (!KeepAlivePlan.isTriggerDue(triggerAt, now, event.from.time, graceMs = 0L)) continue
                     val pi = pendingIntent(app, event.id, i, PendingIntent.FLAG_UPDATE_CURRENT) ?: continue
                     if (setAlarmSafely(am, triggerAt, pi)) scheduled.add(i)
                 }
@@ -105,12 +123,23 @@ object ReminderScheduler {
                 val prefs = NotificationPreferenceSource.getInstance(app)
                 val count = (repeatCount ?: prefs.repeatCount).coerceIn(0, MAX_REPEAT)
                 val am = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                for (i in 0..count) {
-                    val pi = pendingIntent(app, event.id, i, PendingIntent.FLAG_NO_CREATE) ?: continue
-                    am.cancel(pi)
-                    pi.cancel()
-                }
+                // 除了当前重复次数，还要把排期记录里出现过的下标一起清掉，
+                // 否则用户把「重复次数」调小之后，老闹钟会一直留着继续响
+                val indices = HashSet<Int>()
+                for (i in 0..count) indices.add(i)
                 val sp = app.getSharedPreferences(SP_ALARMS, Context.MODE_PRIVATE)
+                (sp.getString(event.id, null)?.split(",") ?: emptyList())
+                    .forEach { raw -> raw.toIntOrNull()?.let { indices.add(it) } }
+                for (i in indices) {
+                    pendingIntent(app, event.id, i, PendingIntent.FLAG_NO_CREATE)?.let {
+                        am.cancel(it)
+                        it.cancel()
+                    }
+                    legacyPendingIntent(app, event.id, i, PendingIntent.FLAG_NO_CREATE)?.let {
+                        am.cancel(it)
+                        it.cancel()
+                    }
+                }
                 sp.edit().remove(event.id).apply()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -142,9 +171,16 @@ object ReminderScheduler {
             val ids = (value as? String)?.split(",") ?: continue
             for (raw in ids) {
                 val repeatIndex = raw.toIntOrNull() ?: continue
-                val pi = pendingIntent(app, eventId, repeatIndex, PendingIntent.FLAG_NO_CREATE) ?: continue
-                am.cancel(pi)
-                pi.cancel()
+                // 新版（带 data，避免 hash 冲突串台）
+                pendingIntent(app, eventId, repeatIndex, PendingIntent.FLAG_NO_CREATE)?.let {
+                    am.cancel(it)
+                    it.cancel()
+                }
+                // 旧版（1.0.3 及以前没有 data，仅有请求码）——升级后要一并清掉，否则会残留幽灵闹钟
+                legacyPendingIntent(app, eventId, repeatIndex, PendingIntent.FLAG_NO_CREATE)?.let {
+                    am.cancel(it)
+                    it.cancel()
+                }
             }
         }
         val rp = reschedulePendingIntent(app, PendingIntent.FLAG_NO_CREATE)
@@ -159,19 +195,19 @@ object ReminderScheduler {
         NotificationUtils.ensureChannels(app)
         val prefs = NotificationPreferenceSource.getInstance(app)
         val am = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val now = System.currentTimeMillis()
 
-        // 安排下一次「窗口重排」
+        // 保活：每天重排一次（旧实现是 6 天才排一次，丢一颗就永久失效）
         reschedulePendingIntent(app, PendingIntent.FLAG_UPDATE_CURRENT)?.let {
-            setAlarmSafely(am, System.currentTimeMillis() + (WINDOW_DAYS - 1) * DAY_MS, it)
+            setAlarmSafely(am, KeepAlivePlan.nextRearmAt(now), it)
         }
 
         if (!prefs.isEnabled) return
 
-        val now = System.currentTimeMillis()
-        val until = now + WINDOW_DAYS * DAY_MS
+        val until = KeepAlivePlan.windowEnd(now)
         val events = try {
             AppDatabase.getDatabase(app).eventItemDao()
-                .getEventsDuringSync(now - 12L * 3600 * 1000, until)
+                .getEventsDuringSync(KeepAlivePlan.windowStart(now), until)
         } catch (e: Exception) {
             e.printStackTrace()
             return
@@ -200,15 +236,11 @@ object ReminderScheduler {
                 USE_GLOBAL_LEAD -> defaultLead
                 else -> override
             }
-            val base = e.from.time - lead * 60_000L
-            val intervalMs = prefs.repeatInterval * 60_000L
             val repeat = prefs.repeatCount.coerceIn(0, MAX_REPEAT)
             val scheduled = mutableListOf<Int>()
             for (i in 0..repeat) {
-                // 第 i 次提醒 = 基准时间 - i * 间隔
-                val triggerAt = base - i * intervalMs
-                if (triggerAt < now - 5 * 60_000L) continue
-                if (triggerAt > e.from.time) continue
+                val triggerAt = KeepAlivePlan.triggerTimeAt(e.from.time, lead, i, prefs.repeatInterval)
+                if (!KeepAlivePlan.isTriggerDue(triggerAt, now, e.from.time)) continue
                 val pi = pendingIntent(app, e.id, i, PendingIntent.FLAG_UPDATE_CURRENT) ?: continue
                 if (setAlarmSafely(am, triggerAt, pi)) scheduled.add(i)
             }
@@ -254,6 +286,24 @@ object ReminderScheduler {
     private fun pendingIntent(app: Context, eventId: String, repeatIndex: Int, flags: Int): PendingIntent? {
         val intent = Intent(app, AlarmReceiver::class.java).apply {
             action = AlarmReceiver.ACTION_REMIND
+            // data 参与 PendingIntent 的相等性判断：只靠请求码时，
+            // 两个 id 的 hashCode 低 16 位相同就会互相覆盖（提醒会串台/丢失）
+            data = Uri.parse("yixian://remind/$repeatIndex/${Uri.encode(eventId)}")
+            putExtra(AlarmReceiver.EXTRA_EVENT_ID, eventId)
+            putExtra(AlarmReceiver.EXTRA_REPEAT_INDEX, repeatIndex)
+        }
+        return PendingIntent.getBroadcast(
+            app, requestCodeOf(eventId, repeatIndex), intent, withImmutable(flags)
+        )
+    }
+
+    /**
+     * 1.0.3 及以前的 PendingIntent 形态（没有 data），
+     * 只用于升级后把残留的旧闹钟清理干净。
+     */
+    private fun legacyPendingIntent(app: Context, eventId: String, repeatIndex: Int, flags: Int): PendingIntent? {
+        val intent = Intent(app, AlarmReceiver::class.java).apply {
+            action = AlarmReceiver.ACTION_REMIND
             putExtra(AlarmReceiver.EXTRA_EVENT_ID, eventId)
             putExtra(AlarmReceiver.EXTRA_REPEAT_INDEX, repeatIndex)
         }
@@ -271,6 +321,4 @@ object ReminderScheduler {
     private fun requestCodeOf(eventId: String, repeatIndex: Int): Int {
         return REQUEST_BASE_EVENT + ((eventId.hashCode() and 0xFFFF) * 16 + repeatIndex)
     }
-
-    private const val DAY_MS = 24L * 3600 * 1000
 }
