@@ -104,6 +104,15 @@ interface EventItemDao {
     @Query("SELECT * FROM events WHERE subjectId is 'YIXIAN_TASK' ORDER BY done ASC, `from` ASC")
     fun getTasksSync(): List<EventItem>
 
+    /**
+     * 未完成、且截止时间在 [fromT, ...) 的待办
+     *
+     * 供「今日」时间轴使用：时间轴原来只查当天 00:00~24:00 的事件，
+     * 截止日期在之后几天的待办就完全看不见了（只有下拉的「即将到来」会露面）。
+     */
+    @Query("SELECT * FROM events WHERE subjectId is 'YIXIAN_TASK' AND done = 0 AND `from` >= :fromT ORDER BY `from` ASC")
+    fun getPendingTasksAfter(fromT: Long): LiveData<List<EventItem>>
+
     @Query("SELECT count(*) FROM events WHERE subjectId is 'YIXIAN_TASK' AND done = 0")
     fun getPendingTaskCount(): LiveData<Int>
 
