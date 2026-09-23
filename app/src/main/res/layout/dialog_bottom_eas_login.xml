@@ -67,11 +67,14 @@
         android:minHeight="240dp"
         android:background="?attr/backgroundColorSecond">
 
-        <!-- ScrollableWebView：登录页需要能在底部弹窗里正常上下滑动 -->
+        <!-- ScrollableWebView：登录页需要能在底部弹窗里正常上下滑动，
+             并且必须自己持有窗口焦点，否则点击输入框无法唤起软键盘 -->
         <com.stupidtree.hitax.ui.widgets.ScrollableWebView
             android:id="@+id/webview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
 
         <ProgressBar
             android:id="@+id/progress"
