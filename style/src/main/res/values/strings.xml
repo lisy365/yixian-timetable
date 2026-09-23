@@ -4,4 +4,14 @@
     <string name="skip_this_version">不再提示此版本更新</string>
     <string name="skip">不再提示</string>
     <string name="update_cancel">过会儿</string>
+
+    <!-- ===== 调色盘 ===== -->
+    <string name="color_picker_title">选择颜色</string>
+    <string name="color_picker_done">确定</string>
+    <string name="color_picker_hex_hint">#RRGGBB</string>
+    <string name="color_picker_apply">应用色号</string>
+    <string name="color_picker_hex_invalid">色号格式不对，请按 #1A2B3C 输入</string>
+    <string name="color_picker_value">明度</string>
+    <string name="color_picker_saturation">饱和度</string>
+    <string name="color_picker_presets">常用颜色</string>
 </resources>
