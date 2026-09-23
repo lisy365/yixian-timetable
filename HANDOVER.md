@@ -121,31 +121,94 @@ Copy-Item "C:\dshproject\hita\sysu\app\build\outputs\apk\release\app-release.apk
           "C:\dshproject\hita\sysu\release\yixian-timetable-v1.0.3.apk" -Force
 # 2) 更新 README 里的版本徽章与下载链接（1.0.2 -> 1.0.3）
 # 3) 同步 + 建 Release 上传 APK（脚本会自动删掉旧版本的 release 与旧 APK）
-$env:GH_TOKEN='<你的 PAT>'
 cd C:\dshproject\hita\_scratch
 node gh_sync.js       lisy365 yixian-timetable v1.0.3 "C:\dshproject\hita\sysu\release\yixian-timetable-v1.0.3.apk"
 node gh_sync_hash.js  lisy365 yixian-timetable v1.0.3    # 二次校验，确保"同字节数改动"也不漏
 ```
 
-**Token**：需要一个勾选 `repo` 权限的 GitHub Personal Access Token（细粒度 token 还要勾 `Administration: Read and write` 才能建仓）。
-用环境变量传入、**不要写进任何文件**；用完请到 GitHub 设置里删除。以后可以把它存到系统环境变量 `GH_TOKEN` 里，避免每次粘贴。
+### Token 怎么给（已配置好，通常不用管）
+
+Token 的解析顺序（`_scratch/gh_token.js`）：
+
+1. 环境变量 `GH_TOKEN`（若你在系统里设过，优先用它）；
+2. 工作区凭据文件 **`C:\dshproject\hita\.gh-token`**（当前就是这个，只存一行 token）。
+
+所以直接跑上面两条 `node gh_sync*.js` 即可，**不需要每次粘贴 token**，脚本会打印一行 `使用 GitHub token: ghp_xxxx...xxxx（长度 40）` 供你确认。
+
+安全约定：
+
+- `.gh-token` 已在 `C:\dshproject\hita\.gitignore` 与 `sysu/.gitignore` 中忽略，**永远不会被提交**；
+- 项目源码里不能出现 token（可用 `Select-String "ghp_[A-Za-z0-9]{20,}"` 自查）；
+- 需要换 token 时：把新 token 覆盖写入 `C:\dshproject\hita\.gh-token`（一行）即可，并到 GitHub 删除旧的；
+- 需要 `repo` 权限（细粒度 token 还要 `Administration: Read and write` 才能建仓）。
+
+> 备注：本机沙箱禁止写注册表，所以 `setx` / `[Environment]::SetEnvironmentVariable` 都会报 access denied ——
+> 这就是用文件而不是系统环境变量的原因。你自己在普通终端里当然可以 `setx GH_TOKEN <token>`，那样第 1 条就会先生效。
 
 ---
 
-## 5. 下次怎么让 DSH 继续改
+## 5. 下次怎么让 DSH 继续改（推荐用法）
 
-新会话不会自带这次对话的记忆，所以第一句话把上下文交代清楚即可，例如：
+新会话不会自带这次对话的记忆，所以第一句话把上下文交代清楚即可。推荐模板：
 
-> 工作区 `C:\dshproject\hita`。先读 `HANDOVER.md`，然后按需求改 `sysu` 项目：
-> 1）…… 2）……；改完自己跑测试、构建、修掉问题，最后同步 GitHub 并发新版（版本号 1.0.3）。
-> GitHub token 用环境变量 `GH_TOKEN`。
+> 工作区 `C:\dshproject\hita`，先读 `HANDOVER.md`（里面有环境、构建/测试/发版流程和已知坑）。
+>
+> **需求**
+> 1）……具体到界面位置、默认值、交互结果
+> 2）……
+>
+> **约束**：保持原 UI 风格与中大绿的配色；不要改变现有数据表结构（若必须改，请加 Migration）
+> **验收**：新增/更新 harness 断言；构建 release 无错误；静态核验（版本号/权限/图标）通过
+> **交付**：完成后同步 GitHub 并发 v1.0.3，Release 里放 APK；README 的版本徽章与下载链接一并更新
+> **自主性**：发现问题自己修，不要中途问我；只有需要我做决定时才提问
 
 要点：
-- 让它**先读 `HANDOVER.md`**（本文），环境/流程/坑都在里面；
+
+- 让它**先读 `HANDOVER.md`**（本文），环境/流程/坑都在里面，能省掉大量重复摸索；
 - 明确「自主测试、自主修复、完成后同步 GitHub」——这样它会自己跑 harness、构建、校验、发版；
 - 需求里写清「保持原 UI 风格」，否则容易被改得不一致；
 - 需要真机验证的功能（通知、背景、WebView 登录），**你装包实测后把现象/日志发回来**，环境里没有模拟器，AI 无法替代这一步；
-- 长任务可以直接说「这是一个长期目标」，DSH 会建 goal 并跨轮次推进。
+- 涉密内容（NetID 密码、会话 Cookie、token）只在需要时说一次，不要写进需求文档或提交。
+
+### 长任务：用「目标（goal）」而不是一次性长指令
+
+DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同一个目标自动继续下一轮，直到完成或确实卡住。适合这类工作：
+
+- 一次要改 4~6 个相互关联的功能（比如「重做课表页 + 适配新的教务接口 + 补齐通知」）；
+- 需要「改完 → 测试 → 发现问题 → 再改」反复迭代几轮的 bug 排查；
+- 想让它把某个模块打磨到某个明确标准（例如「把成绩页做到和课表页同样的完成度」）。
+
+用法（写在你的第一条消息里即可）：
+
+> 这是一个**长期目标**：把 XXX 做到 YYY 标准。中间可以分多轮推进，每轮自己跑测试、自己修，
+> 全部达成后再同步 GitHub 并发版；只有需要我拍板时才停下来问我。
+
+配套建议：
+
+1. **目标要可验收**：写清「完成的标准」（哪些功能可用、哪些断言要通过、APK 要能装能跑），
+   否则目标容易被判定为提前完成；
+2. **一次只立一个目标**：多个目标会让轮次互相打断，复杂需求拆成「先 A 后 B」，A 完成后再立 B；
+3. **给一个轮次上限**：怕它反复折腾时可以说「最多 5 轮，超过就先向我汇报进展」；
+4. **中途纠偏**：任务跑着的时候你随时发消息就能调整方向（比如「背景再淡一点」「这版先不发 GitHub」），
+   不需要等它跑完；
+5. **每轮结束会给结论**：每轮都会说明「这轮做了什么、测试结果、还差什么」，你据此决定继续或收工；
+6. **真机相关需求要写进目标**：例如「通知必须实测能收到」——这种 AI 无法自证的部分，
+   目标里直接写明「由作者真机确认」，避免它空转。
+
+### 需求描述模板（省事的写法）
+
+```
+【做什么】在「功能中心」加一个「课堂签到」入口，点进去显示本周课程列表，可一键标记已签到
+【放哪里】功能中心，排在「通知提醒」下面；沿用现有卡片样式（84dp 高、48dp 圆角图标底）
+【默认值】默认只显示今天，可切换到本周
+【数据】复用 events 表，不新增字段；签到状态存 SharedPreferences
+【验收】harness 加断言；release 构建通过；版本号升到 1.0.3
+【交付】同步 GitHub + Release 放 APK + README 更新版本号
+【自主性】自主测试、自主修复，必要时再问我
+```
+
+按这个格式写，基本可以一次跑通，不用来回补信息。
+
 
 ---
 
