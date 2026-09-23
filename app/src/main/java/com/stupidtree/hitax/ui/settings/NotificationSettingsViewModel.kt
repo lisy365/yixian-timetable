@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.source.preference.NotificationPreferenceSource
+import com.stupidtree.hitax.utils.KeepAliveService
 import com.stupidtree.hitax.utils.NotificationUtils
 import com.stupidtree.hitax.utils.ReminderScheduler
 import java.sql.Timestamp
@@ -35,6 +36,10 @@ class NotificationSettingsViewModel(application: Application) : AndroidViewModel
     val contentTemplate: String get() = prefs.contentTemplate
     val ddlTitleTemplate: String get() = prefs.ddlTitleTemplate
     val ddlContentTemplate: String get() = prefs.ddlContentTemplate
+    val keepAlive: Boolean get() = prefs.keepAlive
+
+    /** 是否已经拿到「精确闹钟」能力（Android 12+ 需要用户授权） */
+    fun canScheduleExact(): Boolean = ReminderScheduler.canScheduleExact(getApplication())
 
     private fun changed() {
         refreshTrigger.value = (refreshTrigger.value ?: 0) + 1
@@ -53,6 +58,13 @@ class NotificationSettingsViewModel(application: Application) : AndroidViewModel
     fun setRepeatInterval(v: Int) { prefs.repeatInterval = v; changed() }
     fun setSoundEnabled(v: Boolean) { prefs.soundEnabled = v; changed() }
     fun setVibrateEnabled(v: Boolean) { prefs.vibrateEnabled = v; changed() }
+
+    /** 后台保活开关：同步启停前台服务 */
+    fun setKeepAlive(v: Boolean) {
+        prefs.keepAlive = v
+        KeepAliveService.setEnabled(getApplication(), v)
+        changed()
+    }
 
     fun setTemplate(title: String, content: String) {
         prefs.titleTemplate = title
