@@ -29,7 +29,7 @@
 <!--        android:title="@string/hita_website" />-->
     <item
         android:id="@+id/drawer_nav_about"
-        android:icon="@drawable/logo"
+        android:icon="@drawable/ic_menu_yixian_calendar"
         android:title="@string/main_drawer_menu_about" />
 
 
