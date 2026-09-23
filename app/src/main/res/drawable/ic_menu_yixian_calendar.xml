@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  逸仙课表 · 「关于」入口图标
+  替换原项目的 HITA「H」形 logo（原 drawable/logo.xml 已删除）。
+  单色矢量，24dp 网格，在 NavigationView 的 itemIconTint（中大绿）下渲染为纯色剪影。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M18.5,3h-1.2V1.5h-1.9V3H8.6V1.5H6.7V3H5.5C4.4,3 3.5,3.9 3.5,5v13.5c0,1.1 0.9,2 2,2h13c1.1,0 2,-0.9 2,-2V5C20.5,3.9 19.6,3 18.5,3zM18.5,18.5h-13V9.4h13V18.5zM18.5,7.6h-13V5h13V7.6z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M7.6,11.2h2.1v2.1H7.6zM10.95,11.2h2.1v2.1h-2.1zM14.3,11.2h2.1v2.1h-2.1zM7.6,14.7h2.1v2.1H7.6zM10.95,14.7h2.1v2.1h-2.1zM14.3,14.7h2.1v2.1h-2.1z" />
+</vector>
