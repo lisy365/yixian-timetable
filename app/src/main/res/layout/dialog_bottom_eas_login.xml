@@ -60,12 +60,15 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="420dp"
+        android:layout_height="0dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:layout_weight="1"
+        android:minHeight="240dp"
         android:background="?attr/backgroundColorSecond">
 
-        <WebView
+        <!-- ScrollableWebView：登录页需要能在底部弹窗里正常上下滑动 -->
+        <com.stupidtree.hitax.ui.widgets.ScrollableWebView
             android:id="@+id/webview"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -79,17 +82,39 @@
             android:max="100" />
     </FrameLayout>
 
-    <TextView
-        android:id="@+id/cookie_entry"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp"
-        android:background="?attr/selectableItemBackground"
-        android:padding="8dp"
-        android:text="@string/sysu_login_cookie_entry"
-        android:textColor="?attr/colorPrimary"
-        android:textSize="13sp" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/cookie_entry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"
+            android:text="@string/sysu_login_cookie_entry"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="13sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/dismiss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"
+            android:text="@string/cancel"
+            android:textColor="?attr/textColorSecondary"
+            android:textSize="13sp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/cookie_group"
