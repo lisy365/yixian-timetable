@@ -471,6 +471,73 @@
                     android:textSize="14sp"
                     tools:ignore="Autofill" />
 
+                <!-- ===== 后台保活与系统权限（v1.0.4） ===== -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/notify_keepalive"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="1"
+                        android:text="@string/notify_keepalive_hint"
+                        android:textColor="?attr/textColorSecondary"
+                        android:textSize="12sp" />
+
+                    <Switch
+                        android:id="@+id/keep_alive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrMaterialXml" />
+                </LinearLayout>
+
+                <!-- 精确闹钟权限状态（Android 12+；未授权时提醒会被系统延后） -->
+                <TextView
+                    android:id="@+id/exact_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="12dp"
+                    android:text="@string/notify_exact_hint_off"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="13sp" />
+
+                <!-- 电池优化白名单 -->
+                <TextView
+                    android:id="@+id/battery_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="12dp"
+                    android:text="@string/notify_battery_hint"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="13sp" />
+
                 <!-- 测试 -->
                 <TextView
                     android:id="@+id/test"
