@@ -108,6 +108,8 @@ class PopUpLoginEAS :
             b.cookieGroup.visibility =
                 if (b.cookieGroup.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         }
+        // 弹窗不再响应拖拽（避免和 WebView 滚动抢手势），因此提供显式关闭入口
+        b.dismiss.setOnClickListener { dismiss() }
         // 长按标题：把当前 WebView 的 Cookie 复制到剪贴板（排查登录问题用）
         b.title.setOnLongClickListener {
             val cookies = readJwxtCookies()
@@ -166,7 +168,9 @@ class PopUpLoginEAS :
         behavior.peekHeight = height
         sheet.layoutParams.height = height
         sheet.requestLayout()
-        behavior.isDraggable = true
+        // 关键：弹窗不参与拖拽，竖直手势全部交给 WebView 滚动
+        // （BottomSheetBehavior 会在 onInterceptTouchEvent 里抢走滑动，导致登录页滑不动）
+        behavior.isDraggable = false
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
