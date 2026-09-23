@@ -151,10 +151,10 @@ class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, Fra
 
     override fun initViews(view: View) {
         initListAndAdapter()
-        viewModel.todayEventsLiveData.observe(this) {
-            Collections.sort(it) { p0, p1 -> p0.from.compareTo(p1.from) }
-            val x = it.toMutableList()
-            x.addAll(0,HintUtils.getHints(requireContext()))
+        // 列表 = 当天事件 + 未来未完成的待办（见 FragmentTimelineViewModel / TimelineTasks）
+        viewModel.todayListLiveData.observe(this) {
+            val x = TimelineTasks.displayOrder(it).toMutableList()
+            x.addAll(0, HintUtils.getHints(requireContext()))
             listAdapter?.notifyItemChangedSmooth(x)
             val holder: RecyclerView.ViewHolder? =
                 binding?.list?.findViewHolderForAdapterPosition(0)
