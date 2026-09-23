@@ -7,13 +7,13 @@
 </p>
 
 <p align="left">
-  <img alt="version" src="https://img.shields.io/badge/version-1.0.3-00693E"/>
+  <img alt="version" src="https://img.shields.io/badge/version-1.0.4-00693E"/>
   <img alt="platform" src="https://img.shields.io/badge/Android-6.0%2B%20(API%2023%2B)-00693E"/>
   <img alt="license" src="https://img.shields.io/badge/license-MIT-00693E"/>
   <img alt="build" src="https://img.shields.io/badge/build-Gradle%208.7%20%2B%20JDK%2017-00693E"/>
 </p>
 
-安装包：[release/yixian-timetable-v1.0.3.apk](release/yixian-timetable-v1.0.3.apk) ｜ [Release 页面](https://github.com/lisy365/yixian-timetable/releases/tag/v1.0.3)
+安装包：[release/yixian-timetable-v1.0.4.apk](release/yixian-timetable-v1.0.4.apk) ｜ [Release 页面](https://github.com/lisy365/yixian-timetable/releases/tag/v1.0.4)
 
 ---
 
@@ -118,6 +118,7 @@
 | v1.0.1 | 新增课表背景自定义、待办事项管理、提醒通知（可自定义提前量 / 重复 / 文案模板）；修复登录弹窗缺「登录」按钮、开屏与关于页仍用原项目图标 |
 | v1.0.2 | 修复第一周及开学前背景不显示；通知提醒移入「功能中心」设置菜单；待办移至底部导航栏；新增一键统一科目颜色；导入课表默认作息修正为中大标准时间表 |
 | v1.0.3 | 修复待办在「今日」时间轴不显示（现在当天到期的待办与未来未完成的待办都会出现在时间轴上，并使用专门的待办卡片）；修复教务登录页在弹窗内无法上下滑动；修正中大作息「第 3 节 10:10 开始、第 4 节 11:50 结束」 |
+| v1.0.4 | 修复教务登录页点击输入框弹不出软键盘（WebView 拿不到窗口焦点，Chromium 的 IME 请求被系统丢弃；现在按下即抢焦点，并在键盘弹出时自动把输入框滚到可视区）；替换残留的原项目图标（抽屉「关于」入口的 HITA「H」logo、Google Play 图标、θ 社区图标与蓝色装饰图）；科目颜色选择重做为**色盘 + 明度/饱和度渐变滑杆 + 色号输入框 + 常用颜色**；新增**后台保活**（前台服务常驻 + 每天自检重排 + 精确闹钟权限/电池优化白名单入口 + 提醒送达期间短时唤醒锁） |
 
 ---
 
