@@ -170,6 +170,19 @@ echo "sdk.dir=/path/to/Android/Sdk" > local.properties
 
 ---
 
+## 维护与二次开发
+
+本项目的**环境配置、构建 / 测试 / 发版流程、已知坑**都记录在 [`HANDOVER.md`](HANDOVER.md) 里，
+想继续开发（或交给 AI 助手继续开发）请先读它，可以少走很多弯路。
+
+Quick start：
+
+```bash
+# 构建 release APK
+./gradlew :app:assembleRelease     # 产物：app/build/outputs/apk/release/app-release.apk
+```
+
+---
 ## 项目结构
 
 ```
