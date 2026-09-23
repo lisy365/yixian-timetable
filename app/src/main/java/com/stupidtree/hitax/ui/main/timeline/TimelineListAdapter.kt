@@ -55,20 +55,15 @@ class TimelineListAdapter(
         fun onTaskLongClick(v: View?, task: EventItem): Boolean
     }
 
-    /** 已完成的待办折叠到列表末尾 */
-    private fun sortedForDisplay(list: List<EventItem>): List<EventItem> {
-        return list.sortedWith(
-            compareBy<EventItem> { if (it.isTask() && it.done) 1 else 0 }
-                .thenBy { it.from.time }
-        )
-    }
-
 
     private fun refreshNowAndNextEvent(todayEvents: List<EventItem>) {
         var changedNow = false
         var changedNext = false
         for (i in todayEvents.indices.reversed()) {
             val ei: EventItem = todayEvents[i]
+            // 待办是「时刻」而不是「时间段」，不能当正在进行的活动，
+            // 也不该让表头显示「距离交作业还有 N 分钟」（那是 DDL，不是马上要上的课）
+            if (ei.isTask() || ei.type === EventItem.TYPE.TAG) continue
             if (ei.containsTimeStamp(System.currentTimeMillis())) {
                 nowEvent = ei
                 changedNow = true
@@ -106,6 +101,7 @@ class TimelineListAdapter(
             HEADER -> return R.layout.dynamic_timeline_header
             EMPTY -> return R.layout.dynamic_timeline_empty
             FOOT -> return R.layout.dynamic_timeline_foot
+            TASK -> return R.layout.dynamic_timeline_card_task
             CLASS -> return R.layout.dynamic_timeline_card_important
             PASSED -> return R.layout.dynamic_timeline_card_passed
         }
@@ -139,6 +135,8 @@ class TimelineListAdapter(
     @SuppressLint("SetTextI18n")
     private fun bindTimelineHolder(timelineHolder: timelineHolder, position: Int) {
         try {
+            if (position >= mBeans.size || position < 0) return
+            val item = mBeans[position]
             if (timelineHolder.timeline != null) {
                 var firstEventIndex = 0
                 for (ei in mBeans) {
@@ -158,12 +156,12 @@ class TimelineListAdapter(
                 }
                 // else timelineHolder.timeline.setVisibility(View.VISIBLE);
             }
-            if (position >= mBeans.size || position < 0) return
-            val item = mBeans[position]
             timelineHolder.tv_name.text = item.name
             // 待办事项：展示截止时间，完成后加删除线
             if (item.isTask()) {
                 if (timelineHolder.tv_time != null) {
+                    // 布局里 tl_tv_time 默认可能是 gone（旧卡片），这里显式打开
+                    timelineHolder.tv_time.visibility = View.VISIBLE
                     timelineHolder.tv_time.text = mContext.getString(
                         R.string.task_due_format,
                         java.text.SimpleDateFormat("M月d日 HH:mm", java.util.Locale.getDefault())
@@ -174,11 +172,6 @@ class TimelineListAdapter(
                     if (item.done) timelineHolder.tv_name.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
                     else timelineHolder.tv_name.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
                 timelineHolder.itemCard.alpha = if (item.done) 0.55f else 1f
-                if (timelineHolder.tv_place != null) {
-                    val note = item.note
-                    timelineHolder.tv_place!!.text =
-                        if (note.isNullOrBlank()) mContext.getString(R.string.task_manager_title) else note
-                }
             } else if (timelineHolder.tv_time != null) {
                 timelineHolder.tv_time.setText(
                         TextTools.getChatTimeText(mContext, item.from)
@@ -188,15 +181,15 @@ class TimelineListAdapter(
                     timelineHolder.tv_name.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
                 timelineHolder.itemCard.alpha = 1f
             }
-            if (timelineHolder.tv_duration != null) {
-                val duration: Int =
-                        (((mBeans[position].to.time - mBeans[position].from.time) / 1000).toInt())
+            // 时长：待办是「时刻」（from == to），算了也没有意义
+            if (timelineHolder.tv_duration != null && !item.isTask()) {
+                val duration: Int = (((item.to.time - item.from.time) / 1000).toInt())
                 if (duration >= 60) timelineHolder.tv_duration!!.text =
                         (duration / 60).toString() + "h " + (if (duration % 60 == 0) "" else (duration % 60).toString() + "min") else timelineHolder.tv_duration!!.text =
                         duration.toString() + "min"
             }
             if (timelineHolder.progressBar != null) {
-                if (mBeans[position] == nowEvent) {
+                if (item == nowEvent && !item.isTask()) {
                     timelineHolder.progressBar!!.visibility = View.VISIBLE
                     timelineHolder.progressBar!!.progress = (nowProgress * 100).toInt()
                     timelineHolder.timeline!!.setImageDrawable(
@@ -210,8 +203,13 @@ class TimelineListAdapter(
                 }
             }
             if (timelineHolder.tv_place != null) {
-                val result =
-                        if (TextUtils.isEmpty(mBeans[position].place)) mContext.getString(R.string.unknown_location) else mBeans[position].place
+                // 待办的「地点」位显示备注，没有备注就显示「待办事项」标签
+                val result = if (item.isTask()) {
+                    val note = item.note
+                    if (note.isNullOrBlank()) mContext.getString(R.string.task_manager_title) else note
+                } else {
+                    if (TextUtils.isEmpty(item.place)) mContext.getString(R.string.unknown_location) else item.place
+                }
                 timelineHolder.tv_place!!.text = result
             }
             if (mOnItemClickListener != null) {
@@ -265,12 +263,15 @@ class TimelineListAdapter(
             EMPTY
         } else {
             if (position == mBeans.size + 1) return FOOT
-            var type = FOOT
-            if (mBeans[position - 1].type === EventItem.TYPE.TAG) return HINT
-            if (TimeTools.passed(mBeans[position - 1].to)) type = PASSED
-            else if (mBeans[position - 1].type == EventItem.TYPE.EXAM || mBeans[position - 1].type == EventItem.TYPE.CLASS) type =
-                    CLASS
-            type
+            val data = mBeans[position - 1]
+            if (data.type === EventItem.TYPE.TAG) return HINT
+            // 待办用专门的卡片：待办是「截止时刻」（from == to），时长/进度条没有意义
+            if (data.isTask()) return TASK
+            // 注意：兜底值必须是「有内容的卡片」。
+            // 原来是 FOOT（页脚空行），未到点的 TYPE.OTHER（待办 / 自定义日程）
+            // 会掉进去，于是该行不绑定任何内容，屏幕上只剩 ~88dp 空白、时间轴也断掉。
+            if (TimeTools.passed(data.to)) return PASSED
+            CLASS
         }
     }
 
@@ -564,6 +565,7 @@ class TimelineListAdapter(
     companion object {
         private const val PASSED = 13
         private const val CLASS = 15
+        private const val TASK = 17
         private const val HINT = 959
         private const val HEADER = 690
         private const val EMPTY = 393
