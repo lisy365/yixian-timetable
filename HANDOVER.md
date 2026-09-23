@@ -115,6 +115,15 @@ $apk="C:\dshproject\hita\sysu\release\yixian-timetable-v1.0.2.apk"
 | `gh_sync_hash.js` | **推荐**：按 git blob SHA 精确比对，把本地新增/修改的文件增量推送到仓库 |
 | `gh_publish.js` | 首次建仓 + 全量上传（已用过，一般不需要） |
 | `gh_check_final.js` | 校验 README/strings/build.gradle 是否与本地一致 |
+| `gh_prune.js` | **删掉「本地已删除、远端还在」的残留文件**（`--delete` 才真删）。改了文件名/删了资源之后一定要跑一次 |
+| `gh_clean_old_apk.js` | 只保留当前版本的 `release/*.apk`，清掉仓库里堆积的旧安装包 |
+| `gh_ensure_asset.js` | 检查 Release 里当前版本的 APK 资产是否真的挂上了；缺失就补传 |
+
+> ⚠️ **踩过的坑（v1.0.4）**：`gh_sync*.js` 只会「上传」本地文件，**不会删除远端多出来的文件**。
+> 所以删掉 `drawable/logo.xml` 这类资源后，仓库里仍然留着它 —— 用户看到的「原项目图标没被替换」就是这么来的。
+> 删除任何文件后，务必跑 `node gh_prune.js lisy365 yixian-timetable`（先看列表，再加 `--delete`）。
+> 同理，`release/` 里的旧 APK 如果在本地没删掉，下一次 `gh_sync_hash.js` 会把它**重新传回仓库**；
+> 发新版时先删本地旧 APK，再用 `gh_clean_old_apk.js` 清远端。
 
 标准发版流程：
 
