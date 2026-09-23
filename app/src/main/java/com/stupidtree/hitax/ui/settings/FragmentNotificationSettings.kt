@@ -113,6 +113,11 @@ class FragmentNotificationSettings :
             openNotificationSettings()
         }
 
+        // ---- 后台保活与系统权限（v1.0.4）----
+        b.keepAlive.setOnCheckedChangeListener { _, v -> viewModel.setKeepAlive(v) }
+        b.exactHint.setOnClickListener { openExactAlarmSettings() }
+        b.batteryHint.setOnClickListener { openBatteryOptimizationSettings() }
+
         viewModel.refreshTrigger.observe(this) { render() }
         render()
     }
@@ -159,6 +164,21 @@ class FragmentNotificationSettings :
         b.groupClass.visibility = visible
         b.permissionHint.visibility =
             if (isNotificationEnabled()) View.GONE else View.VISIBLE
+
+        // 后台保活 / 精确闹钟权限状态
+        b.keepAlive.isChecked = viewModel.keepAlive
+        val exactOk = viewModel.canScheduleExact()
+        b.exactHint.text = getString(
+            if (exactOk) R.string.notify_exact_hint_on else R.string.notify_exact_hint_off
+        )
+        // Android 12 以下没有「闹钟与提醒」这个开关，隐藏该行
+        b.exactHint.visibility = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        b.batteryHint.visibility =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) View.VISIBLE else View.GONE
     }
 
     private fun saveTemplates() {
@@ -196,6 +216,48 @@ class FragmentNotificationSettings :
             startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    /**
+     * 跳转「闹钟与提醒」授权页（Android 12+）。
+     *
+     * 没拿到这个权限时 [android.app.AlarmManager] 只能排不精确闹钟，
+     * 提醒可能被系统推迟几分钟到几十分钟 —— 这是「通知不准时」最常见的系统层原因。
+     */
+    private fun openExactAlarmSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        try {
+            startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                data = Uri.fromParts("package", requireContext().packageName, null)
+            })
+        } catch (e: Exception) {
+            // 部分 ROM 没有这个页面，退回到应用详情页
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        .setData(Uri.fromParts("package", requireContext().packageName, null))
+                )
+            } catch (e2: Exception) {
+                e2.printStackTrace()
+            }
+        }
+    }
+
+    /** 跳转电池优化白名单设置页 */
+    private fun openBatteryOptimizationSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+        try {
+            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        } catch (e: Exception) {
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        .setData(Uri.fromParts("package", requireContext().packageName, null))
+                )
+            } catch (e2: Exception) {
+                e2.printStackTrace()
+            }
         }
     }
 }
