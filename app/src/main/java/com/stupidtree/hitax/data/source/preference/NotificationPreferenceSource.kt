@@ -42,6 +42,9 @@ class NotificationPreferenceSource private constructor(context: Context) {
         private const val KEY_VIBRATE = "vibrate"
         private const val KEY_ONLY_SCHOOL_DAYS = "only_school_days"
 
+        /** 后台保活（前台服务常驻，默认关闭，避免默认占通知栏与耗电） */
+        private const val KEY_KEEP_ALIVE = "keep_alive"
+
         /** 预设：提前 15 分钟提醒 */
         const val DEFAULT_LEAD_MINUTES = 15
 
@@ -152,6 +155,14 @@ class NotificationPreferenceSource private constructor(context: Context) {
         get() = sp.getBoolean(KEY_ONLY_SCHOOL_DAYS, false)
         set(v) = sp.edit().putBoolean(KEY_ONLY_SCHOOL_DAYS, v).apply()
 
+    /**
+     * 后台保活：开启后常驻一个低优先级前台服务，
+     * 周期性重排提醒排期，降低国产 ROM 省电策略导致的漏提醒概率。
+     */
+    var keepAlive: Boolean
+        get() = sp.getBoolean(KEY_KEEP_ALIVE, false)
+        set(v) = sp.edit().putBoolean(KEY_KEEP_ALIVE, v).apply()
+
     /** 恢复默认设置 */
     fun resetToDefault() {
         sp.edit()
@@ -170,6 +181,7 @@ class NotificationPreferenceSource private constructor(context: Context) {
             .putBoolean(KEY_SOUND, true)
             .putBoolean(KEY_VIBRATE, true)
             .putBoolean(KEY_ONLY_SCHOOL_DAYS, false)
+            .putBoolean(KEY_KEEP_ALIVE, false)
             .apply()
     }
 }
