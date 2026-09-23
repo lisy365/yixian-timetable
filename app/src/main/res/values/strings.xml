@@ -166,7 +166,7 @@
     <string name="username">账号</string>
     <string name="password">密码</string>
     <string name="hita_account">HITSZ助手</string>
-    <string name="app_slogan">Harbin Institute of Technology</string>
+    <string name="app_slogan">Sun Yat-sen University</string>
     <string name="navi_campus_card_p">校园卡</string>
     <string name="navi_jw_emptyclassroom_p">空教室查询</string>
     <string name="notif_importdatafirst">请先创建或导入课表！</string>
@@ -1348,6 +1348,22 @@
     <string name="notify_test">发送测试通知</string>
     <string name="notify_test_title">测试通知</string>
     <string name="notify_test_content">如果你看到这条通知，说明提醒功能工作正常。</string>
+
+    <!-- ===== 通知保活（v1.0.4） ===== -->
+    <string name="notify_channel_keepalive">后台保活</string>
+    <string name="notify_keepalive_channel_desc">常驻通知，用于保持进程存活、准时发送提醒</string>
+    <string name="notify_keepalive_title">逸仙课表</string>
+    <string name="notify_keepalive_content">正在后台保障提醒准时送达</string>
+    <string name="notify_keepalive">后台保活</string>
+    <string name="notify_keepalive_hint">常驻一个低优先级通知，定时自检并补排提醒。开启后能明显降低被系统省电策略冻结而漏提醒的概率，代价是略微增加耗电</string>
+    <string name="notify_keepalive_on">已开启后台保活</string>
+    <string name="notify_keepalive_off">已关闭后台保活</string>
+    <string name="notify_exact_title">闹钟与提醒权限</string>
+    <string name="notify_exact_hint_on">已允许精确提醒</string>
+    <string name="notify_exact_hint_off">未允许，提醒可能延迟几分钟，点此前往系统设置</string>
+    <string name="notify_battery_title">电池优化白名单</string>
+    <string name="notify_battery_hint">把本应用加入「不优化」列表，避免提醒被系统延迟</string>
+    <string name="notify_test_hint">点一下「发送测试通知」可以马上验证提醒是否可达</string>
 
     <!-- ===== 课表背景 ===== -->
     <string name="bg_title">课表背景</string>
