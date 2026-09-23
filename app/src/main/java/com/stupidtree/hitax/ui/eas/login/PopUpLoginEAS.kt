@@ -6,6 +6,7 @@ import android.content.DialogInterface
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.view.View
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -90,10 +91,18 @@ class PopUpLoginEAS :
             override fun onPageFinished(view: WebView?, url: String?) {
                 handleUrl(url)
                 b.progress.visibility = View.GONE
+                // 输入框聚焦后自动滚到可视区中部（edge-to-edge 下键盘会直接盖住页面）
+                SysuWebViewUtils.installFocusScroll(b.webview)
+                // 把焦点交给 WebView，使它成为输入法目标 View
+                b.webview.grabImeFocus()
                 if (!submitted) startPolling()
             }
         }
         b.webview.loadUrl(SysuApi.LOGIN_URL)
+        // 弹窗出现后主动把焦点从「登录」按钮转到 WebView：
+        // Dialog 默认把初始焦点给第一个可聚焦控件，那样 WebView 不是焦点 View，
+        // Chromium 的 showSoftKeyboard() 会被 InputMethodManager 直接拒绝（键盘不弹）。
+        b.webview.postDelayed({ if (isAdded) b.webview.grabImeFocus() }, 350)
 
         // 手动确认按钮
         b.buttonLogin.setOnClickListener {
@@ -161,6 +170,19 @@ class PopUpLoginEAS :
         super.onStart()
         // 让底部弹窗接近全屏，便于操作登录页
         val dialog = dialog ?: return
+
+        // ---- 软键盘相关：登录页必须能正常唤起输入法 ----
+        // 1) FLAG_NOT_FOCUSABLE / FLAG_ALT_FOCUSABLE_IM 会让系统不把本窗口当成输入法目标，
+        //    WebView 里的 Chromium showSoftKeyboard() 就会被丢掉（现象：点输入框没键盘）。
+        // 2) SOFT_INPUT_ADJUST_RESIZE：键盘弹出时压缩窗口而不是平移，避免输入框被顶出屏幕。
+        dialog.window?.let { w ->
+            w.clearFlags(
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+            )
+            w.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        }
+
         val sheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
             ?: return
         val behavior = BottomSheetBehavior.from(sheet)
@@ -172,6 +194,8 @@ class PopUpLoginEAS :
         // （BottomSheetBehavior 会在 onInterceptTouchEvent 里抢走滑动，导致登录页滑不动）
         behavior.isDraggable = false
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        // 弹窗布局完成后再抢一次焦点，确保 WebView 是输入法目标 View
+        binding?.webview?.post { if (isAdded) binding?.webview?.grabImeFocus() }
     }
 
     /**
