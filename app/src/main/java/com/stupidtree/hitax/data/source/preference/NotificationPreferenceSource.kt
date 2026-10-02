@@ -45,6 +45,17 @@ class NotificationPreferenceSource private constructor(context: Context) {
         /** 后台保活（前台服务常驻，默认关闭，避免默认占通知栏与耗电） */
         private const val KEY_KEEP_ALIVE = "keep_alive"
 
+        // ---------------- v1.0.5：保活通知文案 ----------------
+        private const val KEY_KEEPALIVE_TITLE = "keepalive_title"
+        private const val KEY_KEEPALIVE_CONTENT = "keepalive_content"
+        private const val KEY_KEEPALIVE_QUOTE_ENABLE = "keepalive_quote_enable"
+        private const val KEY_KEEPALIVE_API = "keepalive_api"
+        private const val KEY_KEEPALIVE_QUOTE_TEXT = "keepalive_quote_text"
+        private const val KEY_KEEPALIVE_QUOTE_SOURCE = "keepalive_quote_source"
+        private const val KEY_KEEPALIVE_QUOTE_AUTHOR = "keepalive_quote_author"
+        private const val KEY_KEEPALIVE_QUOTE_AT = "keepalive_quote_at"
+        private const val KEY_KEEPALIVE_OFFLINE_INDEX = "keepalive_offline_index"
+
         /** 预设：提前 15 分钟提醒 */
         const val DEFAULT_LEAD_MINUTES = 15
 
@@ -163,6 +174,53 @@ class NotificationPreferenceSource private constructor(context: Context) {
         get() = sp.getBoolean(KEY_KEEP_ALIVE, false)
         set(v) = sp.edit().putBoolean(KEY_KEEP_ALIVE, v).apply()
 
+    // ------------------------------------------------------------------
+    // v1.0.5：保活通知文案（可自定义 / 可自动更新励志短句）
+    // ------------------------------------------------------------------
+
+    /** 保活通知标题；空字符串表示用默认文案 */
+    var keepAliveTitle: String
+        get() = sp.getString(KEY_KEEPALIVE_TITLE, "") ?: ""
+        set(v) = sp.edit().putString(KEY_KEEPALIVE_TITLE, v).apply()
+
+    /** 保活通知内容；空字符串表示用默认文案 / 短句 */
+    var keepAliveContent: String
+        get() = sp.getString(KEY_KEEPALIVE_CONTENT, "") ?: ""
+        set(v) = sp.edit().putString(KEY_KEEPALIVE_CONTENT, v).apply()
+
+    /** 是否自动更新励志短句 */
+    var keepAliveQuoteEnabled: Boolean
+        get() = sp.getBoolean(KEY_KEEPALIVE_QUOTE_ENABLE, false)
+        set(v) = sp.edit().putBoolean(KEY_KEEPALIVE_QUOTE_ENABLE, v).apply()
+
+    /** 励志短句接口（公益 API，默认一言） */
+    var keepAliveQuoteApi: String
+        get() = sp.getString(KEY_KEEPALIVE_API, "") ?: ""
+        set(v) = sp.edit().putString(KEY_KEEPALIVE_API, v).apply()
+
+    /** 已缓存的短句正文 */
+    var quoteText: String
+        get() = sp.getString(KEY_KEEPALIVE_QUOTE_TEXT, "") ?: ""
+        set(v) = sp.edit().putString(KEY_KEEPALIVE_QUOTE_TEXT, v).apply()
+
+    var quoteSource: String
+        get() = sp.getString(KEY_KEEPALIVE_QUOTE_SOURCE, "") ?: ""
+        set(v) = sp.edit().putString(KEY_KEEPALIVE_QUOTE_SOURCE, v).apply()
+
+    var quoteAuthor: String
+        get() = sp.getString(KEY_KEEPALIVE_QUOTE_AUTHOR, "") ?: ""
+        set(v) = sp.edit().putString(KEY_KEEPALIVE_QUOTE_AUTHOR, v).apply()
+
+    /** 上次成功获取短句的时间戳 */
+    var quoteFetchedAt: Long
+        get() = sp.getLong(KEY_KEEPALIVE_QUOTE_AT, 0L)
+        set(v) = sp.edit().putLong(KEY_KEEPALIVE_QUOTE_AT, v).apply()
+
+    /** 离线轮换游标（内置语录） */
+    var offlineQuoteIndex: Int
+        get() = sp.getInt(KEY_KEEPALIVE_OFFLINE_INDEX, 0)
+        set(v) = sp.edit().putInt(KEY_KEEPALIVE_OFFLINE_INDEX, v).apply()
+
     /** 恢复默认设置 */
     fun resetToDefault() {
         sp.edit()
@@ -182,6 +240,15 @@ class NotificationPreferenceSource private constructor(context: Context) {
             .putBoolean(KEY_VIBRATE, true)
             .putBoolean(KEY_ONLY_SCHOOL_DAYS, false)
             .putBoolean(KEY_KEEP_ALIVE, false)
+            .putString(KEY_KEEPALIVE_TITLE, "")
+            .putString(KEY_KEEPALIVE_CONTENT, "")
+            .putBoolean(KEY_KEEPALIVE_QUOTE_ENABLE, false)
+            .putString(KEY_KEEPALIVE_API, "")
+            .putString(KEY_KEEPALIVE_QUOTE_TEXT, "")
+            .putString(KEY_KEEPALIVE_QUOTE_SOURCE, "")
+            .putString(KEY_KEEPALIVE_QUOTE_AUTHOR, "")
+            .putLong(KEY_KEEPALIVE_QUOTE_AT, 0L)
+            .putInt(KEY_KEEPALIVE_OFFLINE_INDEX, 0)
             .apply()
     }
 }
