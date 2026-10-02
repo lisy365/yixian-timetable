@@ -25,6 +25,7 @@ import com.stupidtree.hitax.ui.main.timetable.views.TimetableWeekView
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.EventsUtils
 import com.stupidtree.hitax.utils.TimeTools
+import com.stupidtree.hitax.utils.TimetableGrid
 import com.stupidtree.style.base.BaseFragment
 import tyrantgit.explosionfield.ExplosionField
 import java.util.*
@@ -180,7 +181,9 @@ class TimetableFragment :
             }
         }
         viewModel.startTimeLiveData.observe(this) {
-            binding?.labels?.setStartDate(it / 100, it % 100)
+            // v1.0.5：网格改为「按节等分」，不再依赖起始整点时间；
+            // 保留观察者是为了在用户改动课表样式后刷新左侧节次栏的行高。
+            binding?.labels?.setRowHeight(currentRowHeight())
         }
         for (i in 0 until WINDOW_SIZE) {
             viewModel.windowStartData[i].observe(this) { date ->
@@ -259,10 +262,33 @@ class TimetableFragment :
         minTT?.let {
             mainPageController?.setTitleText(getString(R.string.week_title, minWk))
             it.name?.let { it1 -> mainPageController?.setTimetableName(it1) }
-            TimeTableView.timetableStructure = it.scheduleStructure
+            applyStructure(it.scheduleStructure)
             return
         }
         mainPageController?.setSingleTitle(getString(R.string.holiday))
+    }
+
+    /**
+     * 把当前课表的作息结构同步到网格、左侧节次栏以及全部已创建的周视图。
+     *
+     * v1.0.5：老数据里可能还是 12/14 节的旧结构，这里统一走
+     * [TimetableGrid.normalize] 规整成中大官方的 11 节（下午第一节 14:20）。
+     */
+    private fun applyStructure(raw: List<TimePeriodInDay>?) {
+        val structure = TimetableGrid.normalize(raw ?: Timetable().getDefaultTimeStructure())
+        TimeTableView.timetableStructure = structure
+        binding?.labels?.setStructure(structure)
+        binding?.labels?.setRowHeight(currentRowHeight())
+        for (i in 0 until WINDOW_SIZE) views[i]?.setStructure(structure)
+    }
+
+    /** 与 [TimeTableView] 保持一致的行高（px） */
+    private fun currentRowHeight(): Int {
+        val density = resources.displayMetrics.density
+        val preferred = (TimetableGrid.ROW_HEIGHT_DP * density).toInt()
+        val minPx = (TimetableGrid.MIN_ROW_HEIGHT_DP * density).toInt()
+        val base = views.firstOrNull { it != null }?.getStyleSheet()?.cardHeight ?: 0
+        return (if (base > 0) base else preferred).coerceAtLeast(minPx)
     }
 
     interface MainPageController {
