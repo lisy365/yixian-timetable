@@ -196,4 +196,48 @@ object TimetableGrid {
      * 一节「节次标签」的短文本：数字部分，用于左侧大号数标
      */
     fun periodNumberText(index: Int): String = periodNumberOf(index).toString()
+
+    // ------------------------------------------------------------------
+    // 课表里「该显示哪些事件」（v1.0.7）
+    // ------------------------------------------------------------------
+
+    /**
+     * 该事件是否应该出现在**周课表网格**里。
+     *
+     * 用户反馈：「待办事项不应出现在时间表中」。
+     * 根因：待办复用 `events` 表（`type = OTHER`、`subjectId = 'YIXIAN_TASK'`、
+     * `timetableId = ''`），而周视图取数走的是
+     * `EventItemDao.getEventsDuring(from, to)` —— 只按时间范围过滤，
+     * 于是「截止时间落在这一周」的待办就被画进了课表格子里。
+     *
+     * 判断依据（任一命中即排除）：
+     * 1. [subjectId] 是待办专用标记 `YIXIAN_TASK`（见 `EventItem.isTask()`）；
+     * 2. 事件没有挂课表（`timetableId` 为空）—— 课表格子只承载某套课表下的课程；
+     * 3. 事件类型是标签占位（`TAG`，`listAdapter` 用的伪数据，不该落到网格）。
+     *
+     * 注意 `EXAM` / `OTHER` 里挂在课表下的事件（例如教务导入的考试、用户自己加的日程）
+     * **仍然保留**，它们本来就是课表的一部分。
+     */
+    fun isVisibleInTimetable(
+        subjectId: String?,
+        timetableId: String?,
+        type: String?
+    ): Boolean {
+        if (subjectId == TASK_SUBJECT_ID) return false
+        if (type == "TAG") return false
+        // 待办与「今日时间轴专用」的条目都不挂在课表下
+        if (timetableId.isNullOrBlank()) return false
+        return true
+    }
+
+    /** 与 `EventItem.SUBJECT_ID_TASK` 保持一致（这里不引用 EventItem，保持纯逻辑可单测） */
+    const val TASK_SUBJECT_ID = "YIXIAN_TASK"
+
+    /** 过滤掉不该出现在课表里的事件（保持原有顺序） */
+    fun <T> filterForTimetable(
+        events: List<T>,
+        subjectId: (T) -> String?,
+        timetableId: (T) -> String?,
+        type: (T) -> String?
+    ): List<T> = events.filter { isVisibleInTimetable(subjectId(it), timetableId(it), type(it)) }
 }
