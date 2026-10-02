@@ -5,9 +5,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.ui.about.ActivityAbout
-import com.stupidtree.hitax.ui.crawler.CrawlerActivity
+import com.stupidtree.hitax.ui.crawler.CrawlerFragment
+import com.stupidtree.hitax.ui.resource.ResourceBrowserFragment
 import com.stupidtree.hitax.ui.settings.PopUpThemePicker
 import com.stupidtree.hitax.ui.settings.FragmentNotificationSettings
+import com.stupidtree.hitax.ui.settings.PanelSheet
+import com.stupidtree.hitax.ui.settings.SettingsPanelFragment
 import com.stupidtree.hitax.ui.task.FragmentTask
 import com.stupidtree.hitax.utils.ActivityUtils
 
@@ -85,15 +88,24 @@ object ToolRegistry {
             group = Group.STUDY,
             factory = { FragmentTask() }
         ),
-        Launcher(
+        // v1.0.7：「教务信息爬取」改为小工具下的二级界面（内嵌页面 + 适配刘海的顶栏）
+        Embedded(
             id = "crawler",
             nameRes = R.string.tool_crawler_name,
             descRes = R.string.tool_crawler_desc,
             iconRes = R.drawable.ic_baseline_cloud_download_24,
-            group = Group.STUDY
-        ) { context, _ ->
-            ActivityUtils.startActivity(context, CrawlerActivity::class.java)
-        },
+            group = Group.STUDY,
+            factory = { CrawlerFragment() }
+        ),
+        // v1.0.7：爬到的教学资料在 App 内直接看
+        Embedded(
+            id = "resources",
+            nameRes = R.string.tool_resources_name,
+            descRes = R.string.tool_resources_desc,
+            iconRes = R.drawable.ic_baseline_format_list_bulleted_24,
+            group = Group.STUDY,
+            factory = { ResourceBrowserFragment() }
+        ),
         Launcher(
             id = "timetable_manager",
             nameRes = R.string.tool_timetable_manager_name,
@@ -102,6 +114,17 @@ object ToolRegistry {
             group = Group.STUDY
         ) { context, _ ->
             ActivityUtils.startTimetableManager(context)
+        },
+        // v1.0.7：设置项统一收敛到一个面板（外观 / 提醒 / 资料 / 关于）
+        Launcher(
+            id = "settings",
+            nameRes = R.string.tool_settings_name,
+            descRes = R.string.tool_settings_desc,
+            iconRes = R.drawable.ic_baseline_tune_24,
+            group = Group.APPEARANCE
+        ) { _, activity ->
+            PanelSheet.newInstance(R.string.settings_title) { SettingsPanelFragment() }
+                .show(activity.supportFragmentManager, "settings")
         },
         Launcher(
             id = "theme",
@@ -131,6 +154,16 @@ object ToolRegistry {
             ActivityUtils.startActivity(context, ActivityAbout::class.java)
         }
     )
+
+    /** 一个可打开「完整页面」的工具（内嵌形态下右上方会出现入口） */
+    val FULL_PAGE_ROUTES: Map<String, Class<out android.app.Activity>> = mapOf(
+        "task" to com.stupidtree.hitax.ui.task.TaskManagerActivity::class.java,
+        "crawler" to com.stupidtree.hitax.ui.crawler.CrawlerActivity::class.java,
+        "resources" to com.stupidtree.hitax.ui.resource.ResourceBrowserActivity::class.java
+    )
+
+    fun fullPageOf(id: String?): Class<out android.app.Activity>? =
+        if (id == null) null else FULL_PAGE_ROUTES[id]
 
     fun byId(id: String): ToolItem? = ALL.firstOrNull { it.id == id }
 
