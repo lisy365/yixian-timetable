@@ -26,6 +26,13 @@ class TimetableStyleSheet {
     var subtitleAlpha: Int = 60
     var drawNowLine: Boolean = true
 
+    /**
+     * 课程卡片上是否显示「第N节」标签（v1.0.5 新增，默认开启）
+     * 注意：该字段不参与 equals/hashCode —— 它只影响卡片内部渲染，
+     * 若参与比较会导致 LiveData 每次刷新都被判定为「样式变了」而整页重建。
+     */
+    var showPeriodLabel: Boolean = true
+
 
     private var startTimeInDay: TimeInDay? = null
     fun getStartTimeObject(): TimeInDay {
