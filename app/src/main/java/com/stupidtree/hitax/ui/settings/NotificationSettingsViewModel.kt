@@ -66,6 +66,92 @@ class NotificationSettingsViewModel(application: Application) : AndroidViewModel
         changed()
     }
 
+    // ------------------------------------------------------------------
+    // v1.0.5：保活通知文案（自定义 / 励志短句）
+    // ------------------------------------------------------------------
+
+    val keepAliveTitle: String get() = prefs.keepAliveTitle
+    val keepAliveContent: String get() = prefs.keepAliveContent
+    val keepAliveQuoteEnabled: Boolean get() = prefs.keepAliveQuoteEnabled
+    val keepAliveApi: String get() = prefs.keepAliveQuoteApi.ifBlank {
+        com.stupidtree.hitax.utils.QuoteProvider.DEFAULT_API
+    }
+
+    /** 当前保活通知的实际文案（标题 to 内容），设置页做预览用 */
+    fun keepAlivePreview(): Pair<String, String> {
+        val app = getApplication<Application>()
+        return com.stupidtree.hitax.data.repository.KeepAliveNotifier.renderNow(
+            app,
+            app.getString(com.stupidtree.hitax.R.string.notify_keepalive_title),
+            app.getString(com.stupidtree.hitax.R.string.notify_keepalive_content)
+        )
+    }
+
+    fun setKeepAliveTitle(v: String) {
+        prefs.keepAliveTitle = v
+        notifyKeepAliveTextChanged()
+    }
+
+    fun setKeepAliveContent(v: String) {
+        prefs.keepAliveContent = v
+        notifyKeepAliveTextChanged()
+    }
+
+    fun setKeepAliveQuoteEnabled(v: Boolean) {
+        prefs.keepAliveQuoteEnabled = v
+        if (v) {
+            // 打开时立刻拉一条，用户马上能看到效果
+            Thread {
+                try {
+                    com.stupidtree.hitax.data.repository.KeepAliveNotifier
+                        .refreshIfNeeded(getApplication(), force = true)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                KeepAliveService.refreshNotification(getApplication())
+                refreshTrigger.postValue((refreshTrigger.value ?: 0) + 1)
+            }.start()
+        } else {
+            notifyKeepAliveTextChanged()
+        }
+    }
+
+    fun setKeepAliveApi(v: String) {
+        prefs.keepAliveQuoteApi = v.trim()
+        prefs.quoteFetchedAt = 0L
+        setKeepAliveQuoteEnabled(prefs.keepAliveQuoteEnabled)
+    }
+
+    /**
+     * 「立即刷新一句」：强制联网取一条（失败自动用内置语录），
+     * 完成后回到主线程刷新预览与常驻通知。
+     */
+    fun refreshQuoteNow() {
+        Thread {
+            val text = try {
+                com.stupidtree.hitax.data.repository.KeepAliveNotifier
+                    .refreshForcedBlocking(getApplication())
+            } catch (e: Exception) {
+                ""
+            }
+            KeepAliveService.refreshNotification(getApplication())
+            quoteResult.postValue(text)
+            refreshTrigger.postValue((refreshTrigger.value ?: 0) + 1)
+        }.start()
+    }
+
+    /** 「立即刷新一句」的结果（供 UI 弹 Toast） */
+    val quoteResult = MutableLiveData<String?>()
+
+    fun consumeQuoteResult() {
+        quoteResult.value = null
+    }
+
+    private fun notifyKeepAliveTextChanged() {
+        KeepAliveService.refreshNotification(getApplication())
+        refreshTrigger.value = (refreshTrigger.value ?: 0) + 1
+    }
+
     fun setTemplate(title: String, content: String) {
         prefs.titleTemplate = title
         prefs.contentTemplate = content
