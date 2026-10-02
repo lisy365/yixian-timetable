@@ -20,6 +20,10 @@ interface TimetableDao {
     @Query("SELECT * FROM timetable order by -startTime")
     fun getTimetables(): LiveData<List<Timetable>>
 
+    /** 同步取全部课表（v1.0.5：作息结构迁移用） */
+    @Query("SELECT * FROM timetable order by -startTime")
+    fun getTimetablesSync(): List<Timetable>
+
     @Query("SELECT * FROM timetable WHERE id is :id")
     fun getTimetableById(id: String): LiveData<Timetable>
 
