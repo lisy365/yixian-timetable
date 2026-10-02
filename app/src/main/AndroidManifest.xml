@@ -138,8 +138,12 @@
         <activity android:name=".ui.profile.ProfileActivity" />
         <activity android:name=".ui.eas.exam.ExamActivity" />
         <activity android:name=".ui.task.TaskManagerActivity" />
-        <!-- v1.0.5：教务信息爬取 -->
-        <activity android:name=".ui.crawler.CrawlerActivity" />
+        <!-- v1.0.5：教务信息爬取（v1.0.7：主入口改为小工具内嵌，这里保留独立页） -->
+        <activity
+            android:name=".ui.crawler.CrawlerActivity"
+            android:windowSoftInputMode="adjustResize" />
+        <!-- v1.0.7：爬取资料浏览（培养方案 / 教学大纲） -->
+        <activity android:name=".ui.resource.ResourceBrowserActivity" />
         <activity android:name=".ui.about.ActivityAbout" />
         <activity android:name=".ui.news.lecture.ActivityLecture" />
         <activity android:name=".ui.news.NewsDetailActivity" />
