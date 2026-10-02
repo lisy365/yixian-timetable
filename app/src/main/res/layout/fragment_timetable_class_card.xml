@@ -66,7 +66,8 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- v1.0.5：课程以「第N节」的形式标注在卡片左上角 -->
+        <!-- v1.0.5：课程以「第N节」的形式标注在卡片左上角
+             v1.0.7：改用圆角矩形背景（原先复用的 oval drawable 会把角标撑成 28dp 的椭圆） -->
         <TextView
             android:id="@+id/period"
             android:layout_width="wrap_content"
@@ -75,11 +76,12 @@
             android:layout_marginStart="3dp"
             android:layout_marginTop="2dp"
             android:alpha="0.85"
-            android:background="@drawable/element_round_white_light"
+            android:background="@drawable/element_period_badge"
+            android:includeFontPadding="false"
             android:paddingStart="3dp"
-            android:paddingTop="0dp"
+            android:paddingTop="1dp"
             android:paddingEnd="3dp"
-            android:paddingBottom="0dp"
+            android:paddingBottom="1dp"
             android:text="第1节"
             android:textColor="@color/white"
             android:textSize="8sp"
