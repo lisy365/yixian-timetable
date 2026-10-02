@@ -10,6 +10,7 @@ import com.stupidtree.hitax.data.model.GsonBuilderUtil
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.Timetable
+import com.stupidtree.hitax.utils.ThemePaletteRegistry
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.sync.StupidSync
 import java.security.SecureRandom
@@ -23,6 +24,8 @@ class HApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // v1.0.5：把色板注册给 style 模块（style 不能反向依赖 app 的资源）
+        ThemePaletteRegistry.install()
         val database = AppDatabase.getDatabase(this@HApplication)
         val timetableDao = database.timetableDao()
         val subjectDao = database.subjectDao()
@@ -138,6 +141,15 @@ class HApplication : Application() {
         })
         StupidSync.setUID(LocalUserRepository.getInstance(this).getLoggedInUser().id)
         handleSSLHandshake()
+        // v1.0.5：把老用户库里 12/14 节的旧作息结构迁移为中大官方 11 节
+        // （修正下午第一节 14:20）；放在后台线程，避免拖慢冷启动。
+        Thread {
+            try {
+                com.stupidtree.hitax.utils.TimetableStructureMigration.runIfNeeded(this)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }.start()
     }
 
     private fun handleSSLHandshake() {
