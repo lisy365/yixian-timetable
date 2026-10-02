@@ -213,7 +213,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginTop="@dimen/timetable_date_height"
                     custom:timeLabelColor="?attr/textColorSecondary"
-                    custom:timeLabelSize="11sp" />
+                    custom:timeLabelSize="10sp" />
 
                 <com.stupidtree.hitax.ui.widgets.WrapContentHeightViewPager
                     android:id="@+id/pager"
