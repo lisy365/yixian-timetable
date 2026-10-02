@@ -109,6 +109,27 @@ object KeepAlivePlan {
     fun shouldTick(lastTickAt: Long, now: Long): Boolean =
         now - lastTickAt >= KEEPALIVE_TICK_MS
 
+    // ------------------------------------------------------------------
+    // v1.0.5：保活通知里励志短句的刷新时机（纯函数，便于单测）
+    // ------------------------------------------------------------------
+
+    /** 短句刷新间隔：6 小时（与 [QuoteProvider.REFRESH_INTERVAL_MS] 保持一致） */
+    const val QUOTE_REFRESH_INTERVAL_MS = 6L * 60 * MINUTE_MS
+
+    /**
+     * 是否该去拉一条新的励志短句。
+     * @param lastFetchAt 上次成功获取时间（0 表示从未获取 → 应立刻获取）
+     */
+    fun shouldRefreshQuote(
+        lastFetchAt: Long,
+        now: Long,
+        intervalMs: Long = QUOTE_REFRESH_INTERVAL_MS
+    ): Boolean {
+        if (lastFetchAt <= 0L) return true
+        if (intervalMs <= 0L) return true
+        return now - lastFetchAt >= intervalMs
+    }
+
     /**
      * 提醒是否应该被「静默丢弃」：
      * 事件开始超过 [lateToleranceMs] 之后才送达的通知没有意义（例如手机刚开机）。
