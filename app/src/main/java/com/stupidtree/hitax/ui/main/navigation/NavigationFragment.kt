@@ -15,6 +15,8 @@ import com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity
 import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
 import com.stupidtree.hitax.ui.eas.score.ScoreInquiryActivity
 import com.stupidtree.hitax.ui.settings.FragmentNotificationSettings
+import com.stupidtree.hitax.ui.settings.FragmentSettings
+import com.stupidtree.hitax.ui.resource.ResourceBrowserActivity
 import com.stupidtree.hitax.ui.news.lecture.ActivityLecture
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
@@ -45,10 +47,13 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
         viewModel.unreadMessageLiveData.observe(this) {
             // θ社区消息角标随社区入口一并移除（中大不可用）
         }
-        // 通知提醒设置（原先放在课表设置里，现移到功能中心）
+        // v1.0.7：原来这里直接开「通知提醒」，现在开统一的「设置」面板
+        // （主题 / 课表样式 / 通知提醒 / 爬取资料 / 关于 都在里面）
         binding?.cardNotification?.setOnClickListener {
-            FragmentNotificationSettings().show(parentFragmentManager, "notify_settings")
+            FragmentSettings().show(parentFragmentManager, "settings")
         }
+        // 课表管理：与设置面板里的入口重复，这里保留为快捷入口，
+        // 但标题改清楚它是「课表管理」（不是设置）
         binding?.cardTimetable?.setOnClickListener {
             ActivityUtils.startTimetableManager(requireContext())
         }
@@ -56,6 +61,10 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
             viewModel.recentTimetableLiveData.value?.let {
                 ActivityUtils.startTimetableDetailActivity(requireContext(), it.id)
             }
+        }
+        // v1.0.7：爬到的培养方案 / 教学大纲在 App 内直接查看
+        binding?.cardResources?.setOnClickListener {
+            ActivityUtils.startActivity(requireContext(), ResourceBrowserActivity::class.java)
         }
         binding?.cardImport?.setOnClickListener {
             ActivityUtils.showEasVerifyWindow(
