@@ -28,7 +28,8 @@ import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
 import com.stupidtree.hitax.ui.main.timeline.FragmentTimeLine
 import com.stupidtree.hitax.ui.main.timetable.TimetableFragment
 import com.stupidtree.hitax.ui.main.timetable.panel.FragmentTimetablePanel
-import com.stupidtree.hitax.ui.task.FragmentTask
+import com.stupidtree.hitax.ui.settings.PopUpThemePicker
+import com.stupidtree.hitax.ui.tools.ToolboxFragment
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
@@ -154,6 +155,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         fragment?.applyBackground()
     }
 
+    /** 当前的小工具页（用于返回键与页面切换回调） */
+    private fun toolboxFragment(): ToolboxFragment? =
+        supportFragmentManager.fragments.firstOrNull { it is ToolboxFragment } as? ToolboxFragment
+
     companion object {
         const val REQUEST_NOTIFICATION_PERMISSION = 1001
     }
@@ -167,7 +172,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 return when (position) {
                     0 -> FragmentTimeLine()
                     1 -> TimetableFragment()
-                    2 -> FragmentTask()
+                    2 -> ToolboxFragment()
                     else -> NavigationFragment()
                 }
             }
@@ -192,6 +197,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 binding.todayLayout.visibility = if (position == 0) VISIBLE else GONE
                 binding.timetableLayout.visibility = if (position == 1) VISIBLE else GONE
                 binding.taskLayout.visibility = if (position == 2) VISIBLE else GONE
+                if (position == 2) toolboxFragment()?.onPageShown()
 //                val item = binding.navView.menu.getItem(position)
 //                item.isChecked = true
 //                binding.title.text = item.title
@@ -227,14 +233,19 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             PopupAddEvent().show(supportFragmentManager, "add_event")
         }
 
-        // 待办页标题栏的「+」：新建待办
+        // 小工具页标题栏的「+」：快捷新建待办（待办现在是小工具之一）
         binding.taskAdd.setOnClickListener {
             com.stupidtree.hitax.ui.task.PopUpAddTask()
                 .show(supportFragmentManager, "add_task")
         }
 
         binding.switchTheme.setOnClickListener {
+            PopUpThemePicker().show(supportFragmentManager, "theme_picker")
+        }
+        binding.switchTheme.setOnLongClickListener {
+            // 长按 = 快速在 深色 / 浅色 / 跟随系统 之间循环（保留 v1.0.4 的行为）
             ThemeTools.switchTheme(getThis())
+            true
         }
         viewModel.checkUpdateResult.observe(this) {
             if (it.state == DataState.STATE.SUCCESS) {
@@ -281,6 +292,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             binding.drawer.closeDrawer(GravityCompat.END)
             return
         }
+        // 小工具页内嵌了工具时，返回键先回到工具列表
+        if (binding.pager.currentItem == 2 && toolboxFragment()?.handleBackPressed() == true) {
+            return
+        }
         //返回桌面而非退出
         val intent = Intent(Intent.ACTION_MAIN)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -295,6 +310,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             ThemeTools.MODE.LIGHT -> binding.switchTheme.setImageResource(R.drawable.ic_sun)
             else -> binding.switchTheme.setImageResource(R.drawable.ic_moon_auto)
         }
+        binding.switchTheme.contentDescription = getString(R.string.theme_picker_title)
     }
 
     override fun getViewModelClass(): Class<MainViewModel> {
