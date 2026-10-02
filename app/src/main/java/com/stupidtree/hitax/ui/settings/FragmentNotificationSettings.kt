@@ -118,6 +118,35 @@ class FragmentNotificationSettings :
         b.exactHint.setOnClickListener { openExactAlarmSettings() }
         b.batteryHint.setOnClickListener { openBatteryOptimizationSettings() }
 
+        // ---- 保活通知文案（v1.0.5：自定义 / 励志短句）----
+        b.keepaliveTitle.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) viewModel.setKeepAliveTitle(
+                b.keepaliveTitle.text?.toString().orEmpty()
+            )
+        }
+        b.keepaliveContent.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) viewModel.setKeepAliveContent(
+                b.keepaliveContent.text?.toString().orEmpty()
+            )
+        }
+        b.keepaliveQuote.setOnCheckedChangeListener { _, v ->
+            viewModel.setKeepAliveQuoteEnabled(v)
+        }
+        b.keepaliveRefresh.setOnClickListener {
+            viewModel.refreshQuoteNow()
+            Toast.makeText(requireContext(), R.string.notify_keepalive_quote_hint, Toast.LENGTH_SHORT)
+                .show()
+        }
+        viewModel.quoteResult.observe(this) { text ->
+            if (text == null) return@observe
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.notify_keepalive_refresh_done, text),
+                Toast.LENGTH_LONG
+            ).show()
+            viewModel.consumeQuoteResult()
+        }
+
         viewModel.refreshTrigger.observe(this) { render() }
         render()
     }
@@ -179,6 +208,17 @@ class FragmentNotificationSettings :
         }
         b.batteryHint.visibility =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) View.VISIBLE else View.GONE
+
+        // v1.0.5：保活通知文案
+        if (b.keepaliveTitle.text?.toString() != viewModel.keepAliveTitle) {
+            b.keepaliveTitle.setText(viewModel.keepAliveTitle)
+        }
+        if (b.keepaliveContent.text?.toString() != viewModel.keepAliveContent) {
+            b.keepaliveContent.setText(viewModel.keepAliveContent)
+        }
+        b.keepaliveQuote.isChecked = viewModel.keepAliveQuoteEnabled
+        val (previewTitle, previewContent) = viewModel.keepAlivePreview()
+        b.keepalivePreview.text = "$previewTitle\n$previewContent"
     }
 
     private fun saveTemplates() {
