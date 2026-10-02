@@ -92,8 +92,10 @@ v1.0.4 起另有一个独立入口 `_scratch/harness/HarnessV104.kt`（`run.ps1`
 v1.0.5 起再加 `_scratch/harness/HarnessV105.kt`（`run.ps1` 同样会自动跑），覆盖：
 时间表网格 `com.stupidtree.hitax.utils.TimetableGrid`（固定 11 节、行区间换算、第N节标签、旧结构识别与规整）、
 主题色板 `com.stupidtree.hitax.utils.ThemePalette`（预设表、id 规整、昼夜取色、颜色工具）、
-励志短句 `com.stupidtree.hitax.utils.QuoteProvider`（内置语录、一言/今日诗词解析、刷新时机、通知文案渲染），
-**86 项断言全绿**。
+励志短句 `com.stupidtree.hitax.utils.QuoteProvider`（内置语录、一言/今日诗词解析、刷新时机、通知文案渲染）、
+公开站点爬虫 `com.stupidtree.hitax.data.source.web.sysu.SysuPublicCrawler`（用一个进程内的
+`com.sun.net.httpserver.HttpServer` 当被测站点，验证抓取、链接抽取、404/连不上时的降级与日志），
+**104 项断言全绿**。
 
 这些类都刻意不引用 `android.graphics` / Android 资源，所以能直接在 JVM 里跑 —— 新加纯逻辑请沿用这个做法。
 **提示**：给 harness 加断言时，`Harness.kt` / `HarnessV10x.kt` 只把用到的源码文件列进
@@ -357,8 +359,14 @@ DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同
 - **培养方案 / 教学大纲学校未向学生端开放稳定接口**：代码里各有一组候选入口，
   逐个尝试并写日志；全灭时退化为抓对应页面的可见文本（`SysuApi.getRaw` + jsoup 取 `body().text()`）。
   日志窗口会明确写出「试了哪些入口、结果如何」，不会静默失败。
-- 想扩到「sysu 各学院」时：新增的抓取源只要往 `SysuCrawler.SOURCES` + `runSource()` 里加一条，
-  并复用 `tryFetchPage()` 抓 HTML；存储分类在 `CrawlerStorage.CATEGORIES` 里加一项即可。
+- **第二阶段：校级 / 学院公开站点**（`data/source/web/sysu/SysuPublicCrawler.kt`）——
+  教务部（含**作息时间**权威来源）+ 11 个常用学院官网，抓公开栏目的页面文本与站内链接索引，
+  分类为 `school` / `college`。这些站点**不需要登录**，所以放在教务部分之后独立跑；
+  个别学院域名变更只会记一条「不可达」日志，不影响其它站点。
+  新增学院 = 往 `SysuPublicCrawler.COLLEGES` 加一条 `Site(id, 名称, 域名, listOf(栏目路径))`。
+- 爬虫拿不到原文时，UI 底部还提供「在校内系统里检索」的跳转（`SysuPublicCrawler.SEARCH_TEMPLATES`：
+  教务部站内搜索 / 教务系统 / 本科教学信息平台 / 图书馆）。
+- 存储分类在 `CrawlerStorage.CATEGORIES` 里加一项即可（现在共 8 类）。
 
 ### 9.4 小工具板块（需求 4）
 - 注册表：`ui/tools/ToolRegistry.kt`。两种工具：
@@ -394,10 +402,34 @@ node _scratch\version_snapshot.js rollback v1.0.4 # 回滚到某个快照
 node _scratch\version_snapshot.js prune 3         # 只保留最近 3 个（最少 3 个，不会删到 3 个以下）
 ```
 
+> `prune` 是按 `createdAt`（快照创建时间）挑最旧的删，**不是按版本号**。
+> 所以从仓库重建出来的 `v1.0.3`、`v1.0.5` 这类「补打」的快照时间戳会偏新，
+> 真要清理时先 `list` 看一眼再动手。
+
 - 快照目录：`C:\dshproject\hita\_versions\<tag>\tree\...` + `MANIFEST.json`（相对路径 + 大小 + sha256）。
 - 覆盖范围与 `gh_sync_hash.js` 一致（`sysu/` 下所有参与发布的文件，排除 `build/`、`local.properties` 等）。
 - **回滚会先删掉「快照里没有」的源码文件再写回**，属于精确复原；回滚前建议先给当前状态打一个快照。
-- 目前保留：`v1.0.4`、`v1.0.5`（每次发版前打一个，至少留 3 个）。
+- 目前保留 4 个：`v1.0.3`、`v1.0.4`、`v1.0.5`、`v1.0.6`（`version_snapshot.js verify` 全部 OK）。
+
+### v1.0.3 快照是怎么来的（以及它的已知缺口）
+
+`v1.0.3` 本地已经没有原始目录了，它是**从仓库历史重建**的：
+取 commit `ba9953e30d`（`sync: release/yixian-timetable-v1.0.2.apk（v1.0.3）`，
+是「消息里带 v1.0.3」的最后一个提交；第一个带 v1.0.4 的提交在它 7.7 小时之后），
+该提交的 `app/build.gradle` 为 `versionName "1.0.3"` / `versionCode 1000300`。
+
+- **源码可信**：825 个文件逐个比对过 git blob SHA-1，并用 `_scratch/diff_snapshots.js`
+  与 `v1.0.4` 交叉复核 —— 差异恰好是 v1.0.4 该有的那些（删 3 个 θ/logo 图标、加 8 个
+  保活与调色盘文件、改 23 个含 MainActivity / strings / build.gradle 等）。
+  顺带确认了那个 bug 的历史形态：v1.0.3 的 `Timetable.kt` 里第 5 节就是 **14:30**、且共 14 节。
+- **APK 缺失（不影响回滚源码）**：`release/` 下的安装包已从该快照中移除 ——
+  重建点残留的是 `yixian-timetable-v1.0.2.apk`（旧包，留着会在回滚时污染 release 目录），
+  而真正的 `yixian-timetable-v1.0.3.apk` 因为本机代理会在约 110 秒掐断长连接、
+  且 blob API 不支持 Range 续传而无法取回（重试脚本留在 `_scratch/v103_apk_retry.js`）。
+  需要安装包就用 `build.cmd` 从这套源码重建。
+- 想再补一个更早的版本，照这个思路来即可：找到目标版本对应的最后一个提交，
+  用 `/git/trees/<sha>?recursive=1` + `/git/blobs/<sha>` 拉全量，再按 `MANIFEST.json` 的格式落盘。
+
 
 
 ---
