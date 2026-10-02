@@ -28,7 +28,7 @@ import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
 import com.stupidtree.hitax.ui.main.timeline.FragmentTimeLine
 import com.stupidtree.hitax.ui.main.timetable.TimetableFragment
 import com.stupidtree.hitax.ui.main.timetable.panel.FragmentTimetablePanel
-import com.stupidtree.hitax.ui.settings.PopUpThemePicker
+import com.stupidtree.hitax.ui.settings.FragmentSettings
 import com.stupidtree.hitax.ui.tools.ToolboxFragment
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
@@ -240,10 +240,11 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         }
 
         binding.switchTheme.setOnClickListener {
-            PopUpThemePicker().show(supportFragmentManager, "theme_picker")
+            // v1.0.7：设置项统一收敛到「设置」面板（功能中心里也有同一个入口）
+            FragmentSettings().show(supportFragmentManager, "settings")
         }
         binding.switchTheme.setOnLongClickListener {
-            // 长按 = 快速在 深色 / 浅色 / 跟随系统 之间循环（保留 v1.0.4 的行为）
+            // 长按 = 快速在 深色 / 浅色 / 跟随系统 之间循环（保留 v1.0.4 的快捷操作）
             ThemeTools.switchTheme(getThis())
             true
         }
@@ -304,13 +305,13 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     }
 
 
+    /**
+     * 右上角按钮的图标不再表示昼夜模式（点击已经改成打开「设置」），
+     * 这里只保留无障碍描述，方便读屏。
+     */
     private fun refreshTheme() {
-        when (ThemeTools.getThemeMode(this)) {
-            ThemeTools.MODE.DARK -> binding.switchTheme.setImageResource(R.drawable.ic_moon2)
-            ThemeTools.MODE.LIGHT -> binding.switchTheme.setImageResource(R.drawable.ic_sun)
-            else -> binding.switchTheme.setImageResource(R.drawable.ic_moon_auto)
-        }
-        binding.switchTheme.contentDescription = getString(R.string.theme_picker_title)
+        binding.switchTheme.contentDescription =
+            getString(R.string.settings_title) + " / " + getString(R.string.theme_picker_title)
     }
 
     override fun getViewModelClass(): Class<MainViewModel> {
