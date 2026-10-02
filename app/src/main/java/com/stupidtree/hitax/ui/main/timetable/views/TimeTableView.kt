@@ -219,8 +219,16 @@ class TimeTableView : ViewGroup {
         val res = mutableListOf<List<EventItem>>()
         val buk = arrayOfNulls<MutableList<EventItem>>(7)
         for (i in 0 until 7) buk[i] = mutableListOf()
+        // v1.0.7：待办（subjectId=YIXIAN_TASK）与不挂课表的事件不该出现在课表里，
+        // 否则「截止时间落在本周」的待办会被画进格子里。
+        val visible = TimetableGrid.filterForTimetable(
+            events,
+            { it.subjectId },
+            { it.timetableId },
+            { it.type?.name }
+        )
         //按照周数映射
-        for (event in events) {
+        for (event in visible) {
             buk[event.getDow() - 1]?.add(event)
         }
         for (dow in 0 until 7) {
