@@ -61,7 +61,11 @@ class TimetableDetailActivity :
         teachersListAdapter?.setOnItemClickListener(object :
             BaseListAdapter.OnItemClickListener<TeacherInfo> {
             override fun onItemClick(data: TeacherInfo?, card: View?, position: Int) {
-                ActivityUtils.searchFor(getThis(), data?.name, ActivityUtils.SearchType.TEACHER)
+                // v1.0.7 需求 2：点任课教师直接弹出简介（原来跳到「教师搜索」列表）
+                val name = data?.name?.trim().orEmpty()
+                if (name.isEmpty()) return
+                com.stupidtree.hitax.ui.teacher.PopUpTeacherProfile.newInstance(name)
+                    .show(supportFragmentManager, "teacher_profile")
             }
 
         })
