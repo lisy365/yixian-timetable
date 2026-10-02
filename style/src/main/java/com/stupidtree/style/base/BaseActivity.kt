@@ -46,12 +46,9 @@ abstract class BaseActivity<T : ViewModel, V : ViewBinding> : AppCompatActivity(
     protected abstract fun initViews()
     override fun onCreate(savedInstanceState: Bundle?) {
         //setTranslucentStatusBar()
-        val mode = when (ThemeTools.getThemeMode(this)) {
-            ThemeTools.MODE.DARK -> AppCompatDelegate.MODE_NIGHT_YES
-            ThemeTools.MODE.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
-            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-        }
-        AppCompatDelegate.setDefaultNightMode(mode)
+        // v1.0.5：主题（昼夜模式 + 全局主题色）必须在 super.onCreate() 之前应用，
+        // 否则 setTheme 对已经 inflate 的布局不生效。
+        ThemeTools.applyTheme(this)
         super.onCreate(savedInstanceState)
         setWindowParams(true,null,false)
         binding = initViewBinding()
