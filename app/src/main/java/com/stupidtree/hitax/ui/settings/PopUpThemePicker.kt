@@ -82,8 +82,9 @@ class PopUpThemePicker : BottomSheetDialogFragment() {
             .setOnConfirmListener(object : PopUpCheckableList.OnConfirmListener<Int> {
                 override fun OnConfirm(title: String?, key: Int) {
                     ThemeTools.setThemeMode(requireContext(), modes[key])
-                    activity?.recreate()
+                    // 先关弹窗再重建 Activity，避免弹窗在重建过程中被系统回收
                     dismissAllowingStateLoss()
+                    activity?.recreate()
                 }
             })
             .show(parentFragmentManager, "theme_mode")
@@ -119,8 +120,9 @@ class PopUpThemePicker : BottomSheetDialogFragment() {
             holder.check.visibility = if (selected) View.VISIBLE else View.INVISIBLE
             holder.row.setOnClickListener {
                 ThemeTools.setPaletteId(requireContext(), item.id)
-                activity?.recreate()
+                // 先关弹窗再重建 Activity，避免弹窗在重建过程中被系统回收
                 dismissAllowingStateLoss()
+                activity?.recreate()
             }
         }
     }
