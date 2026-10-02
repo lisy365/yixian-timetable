@@ -20,6 +20,9 @@ object QuoteProvider {
     /** 默认接口（可在设置里改） */
     const val DEFAULT_API = "https://v1.hitokoto.cn/?c=d&c=i&encode=json"
 
+    /** 版本号（用于 User-Agent，随发版更新） */
+    const val USER_AGENT_VERSION = "1.0.6"
+
     /** 刷新间隔：6 小时 */
     const val REFRESH_INTERVAL_MS = 6L * 60 * 60 * 1000
 
