@@ -165,6 +165,11 @@ class CrawlerViewModel(application: Application) : AndroidViewModel(application)
                     )
                     savedCountLiveData.value = CrawlerStorage.savedCount(app)
                 }
+
+                // ---- 第二阶段：校级 / 学院公开站点（不依赖教务会话）----
+                if (!stopRequested) {
+                    runPublicSites(app, saved)
+                }
             } catch (e: SysuCrawler.NotLoggedIn) {
                 appendLog("!! 会话已过期，请重新登录教务", LogLine.Level.ERROR)
                 handler.post {
@@ -186,6 +191,58 @@ class CrawlerViewModel(application: Application) : AndroidViewModel(application)
         if (!running) return
         stopRequested = true
         appendLog("· 已请求停止，将在当前资源结束后退出", LogLine.Level.WARN)
+    }
+
+    /**
+     * 第二阶段：抓取校级 / 学院公开站点（v1.0.5 需求 3 的「sysu 各学院也可纳入爬取范围」）
+     *
+     * 这些站点无需登录，所以放在教务部分之后独立跑；
+     * 每个站点的可达性如实写进日志，个别学院站点挂掉不影响整体。
+     */
+    private fun runPublicSites(app: Application, alreadySaved: Int) {
+        appendLog("=== 进入第二阶段：校级 / 学院公开站点 ===", LogLine.Level.OK)
+        val sites = com.stupidtree.hitax.data.source.web.sysu.SysuPublicCrawler.defaultSites()
+        val crawler = com.stupidtree.hitax.data.source.web.sysu.SysuPublicCrawler { msg ->
+            appendLog(msg, classify(msg))
+        }
+        var saved = 0
+        val saves = try {
+            crawler.crawl(sites) { site, got ->
+                handler.post {
+                    val p = progressLiveData.value ?: Progress()
+                    progressLiveData.value = p.copy(
+                        running = true,
+                        title = "公开站点：${site.name}" + if (got > 0) "（$got 页）" else "（不可达）"
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            appendLog("!! 公开站点抓取异常：${e.message}", LogLine.Level.ERROR)
+            emptyList()
+        }
+        for (s in saves) {
+            try {
+                CrawlerStorage.save(
+                    app, s.category, s.name, s.content, s.summary, s.sourceUrl
+                )
+                saved++
+            } catch (e: Exception) {
+                appendLog("!! 写入失败：${s.name}（${e.message}）", LogLine.Level.ERROR)
+            }
+        }
+        CrawlerStorage.writeReadableIndex(app)
+        val total = alreadySaved + saved
+        appendLog("已写入 $saved 个公开站点文件（本次共 $total 个）", LogLine.Level.OK)
+        handler.post {
+            val p = progressLiveData.value ?: Progress()
+            progressLiveData.value = p.copy(
+                running = false,
+                finished = true,
+                title = "已完成",
+                savedFiles = total
+            )
+            savedCountLiveData.value = CrawlerStorage.savedCount(app)
+        }
     }
 
     fun refreshSavedCount() {
