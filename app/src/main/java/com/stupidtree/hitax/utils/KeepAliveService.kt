@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.source.preference.NotificationPreferenceSource
@@ -39,10 +40,28 @@ class KeepAliveService : Service() {
         private const val ACTION_START = "com.stupidtree.hitax.action.KEEPALIVE_START"
         private const val ACTION_STOP = "com.stupidtree.hitax.action.KEEPALIVE_STOP"
 
+        /** v1.0.5：通知文案改了 / 短句更新了，让服务重新贴一次通知 */
+        private const val ACTION_UPDATE = "com.stupidtree.hitax.action.KEEPALIVE_UPDATE"
+
         /** 用户在设置里切换开关时调用 */
         fun setEnabled(context: Context, enabled: Boolean) {
             val app = context.applicationContext
             if (enabled) start(app) else stop(app)
+        }
+
+        /**
+         * 通知文案变化后刷新常驻通知（v1.0.5）
+         * 服务没在跑时什么都不做（不需要为了改文案把服务拉起来）。
+         */
+        fun refreshNotification(context: Context) {
+            val app = context.applicationContext
+            try {
+                app.startService(
+                    Intent(app, KeepAliveService::class.java).setAction(ACTION_UPDATE)
+                )
+            } catch (e: Exception) {
+                // 服务没在跑时忽略
+            }
         }
 
         fun start(context: Context) {
@@ -93,12 +112,31 @@ class KeepAliveService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        if (intent?.action == ACTION_UPDATE) {
+            // 只更新通知文案：服务没在前台时把它拉起来（用户主动改设置，属于前台行为）
+            if (!foregroundStarted) {
+                startForegroundCompat()
+            } else {
+                repostNotification()
+            }
+            if (ticker == null) startTicker()
+            return START_STICKY
+        }
         startForegroundCompat()
         // 拉起时立刻自检一次，把可能丢掉的排期补回来
         ReminderScheduler.rescheduleAll(this)
         lastTickAt = System.currentTimeMillis()
         startTicker()
         return START_STICKY
+    }
+
+    /** 重新贴一次常驻通知（文案可能已经变了） */
+    private fun repostNotification() {
+        try {
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, buildNotification())
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroy() {
@@ -116,12 +154,36 @@ class KeepAliveService : Service() {
                 if (KeepAlivePlan.shouldTick(lastTickAt, now)) {
                     lastTickAt = now
                     ReminderScheduler.rescheduleAll(this@KeepAliveService)
+                    refreshQuoteIfNeeded()
                 }
                 handler.postDelayed(this, KeepAlivePlan.KEEPALIVE_TICK_MS)
             }
         }
         ticker = r
         handler.postDelayed(r, KeepAlivePlan.KEEPALIVE_TICK_MS)
+        // 启动时如果短句过期了，顺手刷一条
+        refreshQuoteIfNeeded()
+    }
+
+    /**
+     * v1.0.5：按需刷新励志短句并更新通知。
+     * 网络请求放在子线程，避免阻塞主线程（ticker 跑在主 looper 上）。
+     */
+    private fun refreshQuoteIfNeeded() {
+        val prefs = NotificationPreferenceSource.getInstance(this)
+        if (!prefs.keepAliveQuoteEnabled) return
+        if (!KeepAlivePlan.shouldRefreshQuote(prefs.quoteFetchedAt, System.currentTimeMillis())) return
+        Thread {
+            try {
+                val updated = com.stupidtree.hitax.data.repository.KeepAliveNotifier
+                    .refreshIfNeeded(this, force = false)
+                if (updated) {
+                    handler.post { repostNotification() }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }.start()
     }
 
     private fun stopTicker() {
@@ -166,10 +228,17 @@ class KeepAliveService : Service() {
                 PendingIntent.FLAG_UPDATE_CURRENT
             }
         )
+        // v1.0.5：标题 / 内容可由用户自定义，也可以自动换成励志短句
+        val (title, content) = com.stupidtree.hitax.data.repository.KeepAliveNotifier.renderNow(
+            this,
+            getString(R.string.notify_keepalive_title),
+            getString(R.string.notify_keepalive_content)
+        )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_access_alarm_24)
-            .setContentTitle(getString(R.string.notify_keepalive_title))
-            .setContentText(getString(R.string.notify_keepalive_content))
+            .setContentTitle(title)
+            .setContentText(content)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(content))
             .setContentIntent(contentIntent)
             .setOngoing(true)
             .setShowWhen(false)
