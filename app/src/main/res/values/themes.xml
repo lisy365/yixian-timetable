@@ -1,5 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!--
+      ============================================================================
+      全局主题（v1.0.5 起支持「主题色可调」）
+      ============================================================================
+      结构：
+        1) AppTheme            —— 基础主题，**只放与布局/背景相关的颜色**，主色由色板决定；
+        2) AppTheme.Dark       —— 深色基础主题（显式给出深色取值，不依赖 values-night，
+                                  这样运行时选色板不会和系统配置竞争）；
+        3) AppTheme.<色板>     —— 各预设色板（浅色），只覆盖 colorPrimary 系；
+        4) AppTheme.<色板>.Night —— 各预设色板的深色版本，只覆盖 colorPrimary 系。
+
+      运行时：BaseActivity / BaseActivityCompose 在 super.onCreate() 之前调用
+      ThemeTools.applyTheme(this)，由 ThemeTools 依据「昼夜模式 + 色板」setTheme 到具体 style。
+      因为所有布局都用 ?attr/colorPrimary 引用主色，切换后全局自动跟随，无需逐个改 View。
+    -->
+
+    <!-- ======================= 1) 基础主题（浅色） ======================= -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/cruel_summer_primary</item>
@@ -15,7 +31,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">#00000000</item>
         <!-- Customize your theme here. -->
-        <!--        fafbff-->
         <item name="backgroundColorBottom">#F6F7Fa</item>
         <item name="backgroundColorBottomAsTint">#CFFFFFFF</item>
         <item name="backgroundColorSecond">#FFFFFF</item>
@@ -28,6 +43,141 @@
         <!--透明状态栏-->
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <!-- ======================= 2) 基础主题（深色，显式取值） ======================= -->
+    <style name="AppTheme.Dark" parent="AppTheme">
+        <item name="colorPrimary">@color/cruel_summer_fade</item>
+        <item name="colorPrimaryVariant">@color/cruel_summer_fade</item>
+        <item name="colorSecondary">@color/cruel_summer_fade</item>
+        <item name="colorSecondaryVariant">@color/cruel_summer_fade</item>
+        <item name="colorPrimaryDisabled">#77cbd4e2</item>
+        <item name="colorFade">#736dfe</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="backgroundColorBar">#30e7e7f2</item>
+        <item name="android:statusBarColor">#00000000</item>
+        <item name="backgroundColorBottom">#FF000000</item>
+        <item name="backgroundColorBottomAsTint">#bF242424</item>
+        <item name="backgroundColorSecond">#FF121212</item>
+        <item name="backgroundColorSecondAsTint">#6F242424</item>
+        <item name="textColorPrimary">#FFffff</item>
+        <item name="colorControlNormal">#44ffffff</item>
+        <item name="textColorSecondary">#FF858585</item>
+        <item name="colorControlDisabled">#ffE0E0E0</item>
+        <item name="backgroundIconColorBottom">#33304ffe</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!-- ======================= 3) 预设色板（浅色） ======================= -->
+    <style name="AppTheme.Blue" parent="AppTheme">
+        <item name="colorPrimary">#1565C0</item>
+        <item name="colorPrimaryVariant">#0D47A1</item>
+        <item name="colorSecondary">#1565C0</item>
+        <item name="colorSecondaryVariant">#0D47A1</item>
+        <item name="colorPrimaryDisabled">#BBD3EC</item>
+        <item name="backgroundIconColorBottom">#151565C0</item>
+    </style>
+
+    <style name="AppTheme.Red" parent="AppTheme">
+        <item name="colorPrimary">#C62828</item>
+        <item name="colorPrimaryVariant">#8E0000</item>
+        <item name="colorSecondary">#C62828</item>
+        <item name="colorSecondaryVariant">#8E0000</item>
+        <item name="colorPrimaryDisabled">#EDC4C4</item>
+        <item name="backgroundIconColorBottom">#15C62828</item>
+    </style>
+
+    <style name="AppTheme.Purple" parent="AppTheme">
+        <item name="colorPrimary">#6A1FB0</item>
+        <item name="colorPrimaryVariant">#4A148C</item>
+        <item name="colorSecondary">#6A1FB0</item>
+        <item name="colorSecondaryVariant">#4A148C</item>
+        <item name="colorPrimaryDisabled">#D9C4EC</item>
+        <item name="backgroundIconColorBottom">#156A1FB0</item>
+    </style>
+
+    <style name="AppTheme.Orange" parent="AppTheme">
+        <item name="colorPrimary">#E65100</item>
+        <item name="colorPrimaryVariant">#BF360C</item>
+        <item name="colorSecondary">#E65100</item>
+        <item name="colorSecondaryVariant">#BF360C</item>
+        <item name="colorPrimaryDisabled">#F7D2B8</item>
+        <item name="backgroundIconColorBottom">#15E65100</item>
+    </style>
+
+    <style name="AppTheme.Teal" parent="AppTheme">
+        <item name="colorPrimary">#00695C</item>
+        <item name="colorPrimaryVariant">#004D40</item>
+        <item name="colorSecondary">#00695C</item>
+        <item name="colorSecondaryVariant">#004D40</item>
+        <item name="colorPrimaryDisabled">#B8D8D3</item>
+        <item name="backgroundIconColorBottom">#1500695C</item>
+    </style>
+
+    <style name="AppTheme.Graphite" parent="AppTheme">
+        <item name="colorPrimary">#37474F</item>
+        <item name="colorPrimaryVariant">#263238</item>
+        <item name="colorSecondary">#37474F</item>
+        <item name="colorSecondaryVariant">#263238</item>
+        <item name="colorPrimaryDisabled">#CBd2d6</item>
+        <item name="backgroundIconColorBottom">#1537474F</item>
+    </style>
+
+    <!-- ======================= 4) 预设色板（深色） ======================= -->
+    <style name="AppTheme.Blue.Night" parent="AppTheme.Dark">
+        <item name="colorPrimary">#4A90D9</item>
+        <item name="colorPrimaryVariant">#1565C0</item>
+        <item name="colorSecondary">#4A90D9</item>
+        <item name="colorSecondaryVariant">#1565C0</item>
+        <item name="backgroundIconColorBottom">#334A90D9</item>
+    </style>
+
+    <style name="AppTheme.Red.Night" parent="AppTheme.Dark">
+        <item name="colorPrimary">#E05A5A</item>
+        <item name="colorPrimaryVariant">#C62828</item>
+        <item name="colorSecondary">#E05A5A</item>
+        <item name="colorSecondaryVariant">#C62828</item>
+        <item name="backgroundIconColorBottom">#33E05A5A</item>
+    </style>
+
+    <style name="AppTheme.Purple.Night" parent="AppTheme.Dark">
+        <item name="colorPrimary">#9B6BD6</item>
+        <item name="colorPrimaryVariant">#6A1FB0</item>
+        <item name="colorSecondary">#9B6BD6</item>
+        <item name="colorSecondaryVariant">#6A1FB0</item>
+        <item name="backgroundIconColorBottom">#339B6BD6</item>
+    </style>
+
+    <style name="AppTheme.Orange.Night" parent="AppTheme.Dark">
+        <item name="colorPrimary">#F08A3C</item>
+        <item name="colorPrimaryVariant">#E65100</item>
+        <item name="colorSecondary">#F08A3C</item>
+        <item name="colorSecondaryVariant">#E65100</item>
+        <item name="backgroundIconColorBottom">#33F08A3C</item>
+    </style>
+
+    <style name="AppTheme.Teal.Night" parent="AppTheme.Dark">
+        <item name="colorPrimary">#2E9E8F</item>
+        <item name="colorPrimaryVariant">#00695C</item>
+        <item name="colorSecondary">#2E9E8F</item>
+        <item name="colorSecondaryVariant">#00695C</item>
+        <item name="backgroundIconColorBottom">#332E9E8F</item>
+    </style>
+
+    <style name="AppTheme.Graphite.Night" parent="AppTheme.Dark">
+        <item name="colorPrimary">#78909C</item>
+        <item name="colorPrimaryVariant">#37474F</item>
+        <item name="colorSecondary">#78909C</item>
+        <item name="colorSecondaryVariant">#37474F</item>
+        <item name="backgroundIconColorBottom">#3378909C</item>
+    </style>
+
+    <!-- ======================= 5) 自定义色板（由 PopUpColorPicker 取色） =======================
+         运行时无法生成 style，所以「自定义」沿用默认色板的 style，
+         自定义颜色在需要着色的地方由 ThemeTools.getCustomColor() 单独取用
+         （目前用于：底部导航指示器、设置页色块预览、时间线/课表主色块）。 -->
+    <style name="AppTheme.Custom" parent="AppTheme" />
+    <style name="AppTheme.Custom.Night" parent="AppTheme.Dark" />
 
 
     <!-- 欢迎页的风格 -->
