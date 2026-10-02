@@ -11,10 +11,11 @@
         android:icon="@drawable/ic_nav_timetable"
         android:title="@string/title_timetable" />
 
+    <!-- v1.0.5：原「待办」Tab 改为「小工具」，待办成为小工具之一 -->
     <item
-        android:id="@+id/navigation_task"
-        android:icon="@drawable/ic_nav_task"
-        android:title="@string/title_task" />
+        android:id="@+id/navigation_tools"
+        android:icon="@drawable/ic_baseline_widgets_24"
+        android:title="@string/title_tools" />
 
     <item
         android:id="@+id/navigation_navigation"
