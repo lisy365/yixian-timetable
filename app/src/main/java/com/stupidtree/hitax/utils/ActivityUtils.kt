@@ -107,6 +107,19 @@ object ActivityUtils {
         from.startActivity(i)
     }
 
+    /**
+     * 通用「纯文本弹窗」（v1.0.5）
+     * 用项目已有的 [PopUpText] 底部弹窗，避免额外引入 AlertDialog。
+     * 需要在 FragmentActivity 上调用（PopUpText 依赖 supportFragmentManager）。
+     */
+    fun showTextDialog(activity: androidx.fragment.app.FragmentActivity, titleRes: Int, text: String) {
+        PopUpText()
+            .setTitle(titleRes)
+            .setText(text)
+            .setDialogCancelable(true)
+            .show(activity.supportFragmentManager, "text_dialog")
+    }
+
     fun startTimetableManager(from: Context) {
         val i = Intent(from, TimetableManagerActivity::class.java)
         from.startActivity(i)
