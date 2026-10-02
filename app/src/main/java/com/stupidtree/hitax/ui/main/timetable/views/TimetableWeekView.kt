@@ -22,6 +22,13 @@ class TimetableWeekView: LinearLayout{
         timetableView?.init()
     }
 
+    /** v1.0.5：同步作息结构（固定 11 节），网格与左侧节次栏据此对齐 */
+    fun setStructure(structure: List<TimePeriodInDay>?) {
+        timetableView?.setStructure(structure)
+    }
+
+    fun getRowHeight(): Int = timetableView?.sectionHeight ?: 0
+
     fun getStyleSheet(): TimetableStyleSheet? {
         return timetableView?.styleSheet
     }
