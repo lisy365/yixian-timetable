@@ -131,6 +131,8 @@
             android:layout_marginBottom="8dp"
             android:orientation="horizontal">
 
+            <!-- v1.0.7：原来这里是「通知提醒」入口，现在统一收敛为「设置」，
+                 主题 / 课表样式 / 通知提醒 / 爬取资料 都在设置面板里 -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_notification"
                 android:layout_width="match_parent"
@@ -167,7 +169,7 @@
                             android:layout_width="28dp"
                             android:layout_height="28dp"
                             android:layout_gravity="center"
-                            app:srcCompat="@drawable/ic_baseline_notifications_24"
+                            app:srcCompat="@drawable/ic_baseline_tune_24"
                             app:tint="?attr/colorPrimary" />
                     </FrameLayout>
 
@@ -180,7 +182,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/notify_settings_title"
+                            android:text="@string/settings_title"
                             android:textColor="?attr/textColorPrimary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -190,7 +192,82 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:singleLine="true"
-                            android:text="@string/notify_lead_summary_15"
+                            android:text="@string/settings_entry_desc"
+                            android:textColor="?attr/textColorSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:tintMode="src_in"
+                        app:srcCompat="@drawable/ic_baseline_keyboard_arrow_right_24"
+                        app:tint="?attr/colorPrimaryDisabled" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- v1.0.7：爬到的教学资料入口（培养方案 / 教学大纲 / 教师 / 学院栏目） -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_resources"
+                android:layout_width="match_parent"
+                android:layout_height="84dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:clickable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                app:cardBackgroundColor="?attr/backgroundColorSecond"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <FrameLayout
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="14dp">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:tint="?attr/colorPrimary"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/element_round_white_light" />
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:layout_gravity="center"
+                            app:srcCompat="@drawable/ic_baseline_format_list_bulleted_24"
+                            app:tint="?attr/colorPrimary" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/tool_resources_name"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/resources_subtitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:singleLine="true"
+                            android:text="@string/tool_resources_desc"
                             android:textColor="?attr/textColorSecondary"
                             android:textSize="12sp" />
                     </LinearLayout>
