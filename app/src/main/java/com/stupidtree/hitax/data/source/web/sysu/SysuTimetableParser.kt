@@ -38,8 +38,14 @@ object SysuTimetableParser {
     private const val BLOCK_SEP = ",,"
     private const val PART_SEP = ";;"
 
-    /** 一节大课的最大节数，超过的部分做截断保护 */
-    const val MAX_SECTION = 16
+    /**
+     * 一节大课的最大节数。
+     *
+     * 中山大学教务部作息表每天 **11 节**（[com.stupidtree.hitax.utils.TimetableGrid.FIXED_PERIODS]），
+     * 因此超过 11 的节次一定是脏数据（旧接口/异常返回），超过部分直接丢弃，
+     * 否则导入时会以 `schedule[begin-1]` 越界崩溃。
+     */
+    const val MAX_SECTION = 11
 
     /** 中文星期 -> 1..7 */
     private val CN_DOW = mapOf(
@@ -60,7 +66,8 @@ object SysuTimetableParser {
         for (i in 0 until data.length()) {
             val row = data.optJSONObject(i) ?: continue
             val section = optSection(row)
-            if (section <= 0) continue
+            // 每天只有 11 节（中大作息）：超出范围的格子属于脏数据，直接跳过
+            if (section <= 0 || section > MAX_SECTION) continue
             val rowWeek = row.optInt("weekly", week).let { if (it > 0) it else week }
             for (dow in 1..7) {
                 val raw = firstNonEmpty(row, WEEKDAY_FIELDS[dow], WEEKDAY_CN[dow]) ?: continue
