@@ -115,7 +115,10 @@ object KeepAliveNotifier {
             requestMethod = "GET"
             connectTimeout = TIMEOUT_MS
             readTimeout = TIMEOUT_MS
-            setRequestProperty("User-Agent", "YixianTimetable/1.0.5 (Android)")
+            setRequestProperty(
+                "User-Agent",
+                "YixianTimetable/${QuoteProvider.USER_AGENT_VERSION} (Android)"
+            )
             setRequestProperty("Accept", "application/json")
         }
         try {
