@@ -69,11 +69,12 @@ class CrawlerViewModel(application: Application) : AndroidViewModel(application)
     fun appendLog(text: String, level: LogLine.Level = LogLine.Level.INFO) {
         val line = LogLine(timeFormat.format(Date()), text, level)
         handler.post {
-            val list = logsLiveData.value ?: mutableListOf()
-            list.add(line)
+            // 每次都生成新列表再 setValue：直接原地 add 会让 LiveData 认为值没变而不派发
+            val next = ArrayList(logsLiveData.value ?: emptyList())
+            next.add(line)
             // 日志窗口不必无限增长
-            while (list.size > MAX_LOG_LINES) list.removeAt(0)
-            logsLiveData.value = list
+            while (next.size > MAX_LOG_LINES) next.removeAt(0)
+            logsLiveData.value = next
         }
     }
 
