@@ -54,10 +54,19 @@ class CrawlerViewModel(application: Application) : AndroidViewModel(application)
     @Volatile
     private var running = false
 
+    /** 导入课表时指定的学期；非空时优先使用它，而不是「当前学期」 */
+    @Volatile
+    private var termOverride: String? = null
+
     private var worker: Thread? = null
 
     init {
         refreshSavedCount()
+    }
+
+    /** 指定要从哪个学期爬取（导入课表后自动爬取时用） */
+    fun preferTerm(termCode: String?) {
+        if (!termCode.isNullOrBlank()) termOverride = termCode
     }
 
     val isRunning: Boolean get() = running
@@ -112,8 +121,10 @@ class CrawlerViewModel(application: Application) : AndroidViewModel(application)
         appendLog("会话：${token.name ?: token.username}（${token.stuId ?: "-"}）", LogLine.Level.INFO)
 
         val app = getApplication<Application>()
+        val preferred = termOverride
         worker = Thread {
             val crawler = SysuCrawler(token) { msg -> appendLog(msg, classify(msg)) }
+            crawler.preferTerm(preferred)
             try {
                 val results = crawler.crawlAll(
                     onProgress = { r, all ->
