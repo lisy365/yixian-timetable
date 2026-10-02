@@ -20,6 +20,7 @@ import com.stupidtree.hitax.utils.TimeTools
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.base.BaseListAdapter
 import com.stupidtree.style.widgets.PopUpSelectableList
+import com.stupidtree.style.widgets.PopUpCheckableList
 import java.lang.StringBuilder
 import java.text.DecimalFormat
 import java.util.*
@@ -191,13 +192,25 @@ class SubjectActivity : BaseActivity<SubjectViewModel, ActivitySubjectBinding>()
             }
         }
         binding.cardTeacher.onCardClickListener = View.OnClickListener {
-            viewModel.teachersLiveData.value?.let {
-                val sb = it.joinToString(separator = ",")
-                ActivityUtils.searchFor(
-                    getThis(), sb, ActivityUtils.SearchType.TEACHER
-                )
+            // v1.0.7 需求 2：点任课教师弹出「教师简介」界面，
+            // 内容来自本机爬取结果（任教课程 / 职称 / 学院 / 相关大纲）。
+            val names = viewModel.teachersLiveData.value
+                ?.map { it.trim() }
+                ?.filter { it.isNotEmpty() }
+                ?: emptyList()
+            when {
+                names.isEmpty() -> toastNoTeacher()
+                names.size == 1 -> showTeacherProfile(names[0])
+                else -> PopUpCheckableList<String>()
+                    .setListData(names, names)
+                    .setTitle(getString(R.string.teacher_profile_title))
+                    .setOnConfirmListener(object : PopUpCheckableList.OnConfirmListener<String> {
+                        override fun OnConfirm(title: String?, key: String) {
+                            showTeacherProfile(key)
+                        }
+                    })
+                    .show(supportFragmentManager, "pick_teacher")
             }
-
         }
         binding.cardCredit.onCardClickListener = View.OnClickListener {
 
@@ -226,8 +239,19 @@ class SubjectActivity : BaseActivity<SubjectViewModel, ActivitySubjectBinding>()
     }
 
 
-    private fun getSubjectTypeName(type: TermSubject.TYPE): String {
-        return when (type) {
+    /** 弹出教师简介（v1.0.7 需求 2） */
+    private fun showTeacherProfile(name: String) {
+        com.stupidtree.hitax.ui.teacher.PopUpTeacherProfile.newInstance(name)
+            .show(supportFragmentManager, "teacher_profile")
+    }
+
+    private fun toastNoTeacher() {
+        android.widget.Toast.makeText(
+            getThis(), R.string.teacher_profile_no_course, android.widget.Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun getSubjectTypeName(type: TermSubject.TYPE): String {        return when (type) {
             TermSubject.TYPE.MOOC -> getString(R.string.subject_mooc)
             TermSubject.TYPE.COM_A -> getString(
                 R.string.subject_exam
