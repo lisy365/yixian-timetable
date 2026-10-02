@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.repository.CrawlerStorage
+import com.stupidtree.hitax.data.source.web.sysu.SysuPublicCrawler
 import com.stupidtree.hitax.databinding.ActivityCrawlerBinding
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.style.base.BaseActivity
@@ -59,6 +60,8 @@ class CrawlerActivity : BaseActivity<CrawlerViewModel, ActivityCrawlerBinding>()
         }
         binding.openDir.setOnClickListener { openSavedFolder() }
 
+        buildSearchShortcuts()
+
         viewModel.logsLiveData.observe(this) { list ->
             logAdapter.submit(list)
             binding.logEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
@@ -104,6 +107,55 @@ class CrawlerActivity : BaseActivity<CrawlerViewModel, ActivityCrawlerBinding>()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeButtonEnabled(true)
         toolbar.setNavigationOnClickListener { onBackPressed() }
+    }
+
+    /**
+     * 「在校内系统里检索」快捷入口
+     *
+     * 教学大纲、培养方案原文这类内容，教务系统不一定会开放接口；
+     * 与其硬猜接口，不如给用户一个一键跳到校内检索页的入口。
+     */
+    private fun buildSearchShortcuts() {
+        val box = binding.searchBox
+        box.removeAllViews()
+        for ((name, template, needLogin) in SysuPublicCrawler.SEARCH_TEMPLATES) {
+            val chip = TextView(this).apply {
+                text = name
+                textSize = 12f
+                setTextColor(resolveColorPrimary())
+                gravity = android.view.Gravity.CENTER
+                setPadding(dp(14), dp(8), dp(14), dp(8))
+                setBackgroundResource(R.drawable.element_rounded_bar_grey_light_24)
+                setOnClickListener {
+                    val url = template.replace("{}", Uri.encode("教学大纲"))
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this@CrawlerActivity,
+                            R.string.crawler_open_dir,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+            val lp = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            lp.marginEnd = dp(8)
+            chip.layoutParams = lp
+            box.addView(chip)
+            if (needLogin) chip.alpha = 0.85f
+        }
+    }
+
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+
+    private fun resolveColorPrimary(): Int {
+        val tv = android.util.TypedValue()
+        theme.resolveAttribute(R.attr.colorPrimary, tv, true)
+        return if (tv.data != 0) tv.data else 0xFF00693E.toInt()
     }
 
     /**
