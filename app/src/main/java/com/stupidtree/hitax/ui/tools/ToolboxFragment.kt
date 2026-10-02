@@ -47,9 +47,9 @@ class ToolboxFragment : BaseFragment<ToolboxViewModel, FragmentToolboxBinding>()
             it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
             closeEmbeddedTool()
         }
-        b.toolAction.setOnClickListener {
-            ActivityUtils.startActivity(requireContext(), TaskManagerActivity::class.java)
-        }
+        // v1.0.7 需求 7：「小工具」页右上角的「+」是功能迁移前遗留的「新建待办」入口，
+        // 待办已经不是独立 Tab 了，这里不再对外暴露该入口（统一从「待办事项」工具里新建）。
+        b.toolAction.visibility = View.GONE
         viewModel.embeddedToolId.observe(this) { id ->
             renderEmbedded(id)
         }
@@ -65,9 +65,19 @@ class ToolboxFragment : BaseFragment<ToolboxViewModel, FragmentToolboxBinding>()
     fun onPageShown() {
         viewModel.refresh()
         binding ?: return
-        // 内嵌工具在页面重新可见时同步一次（例如待办列表在别处被改过）
+        // 内嵌工具在页面重新可见时同步一次（例如待办列表在别处被改过、
+        // 或教学资料刚在爬取页新增）
         renderEmbedded(embeddedId)
+        embeddedChild()?.let { child ->
+            when (child) {
+                is com.stupidtree.hitax.ui.resource.ResourceBrowserFragment -> child.onPageShown()
+            }
+        }
     }
+
+    /** 当前内嵌的工具实例 */
+    private fun embeddedChild(): Fragment? =
+        childFragmentManager.findFragmentByTag(TAG_EMBEDDED)
 
     private fun openTool(item: ToolRegistry.ToolItem) {
         val host = activity ?: return
@@ -103,8 +113,14 @@ class ToolboxFragment : BaseFragment<ToolboxViewModel, FragmentToolboxBinding>()
         b.toolHost.visibility = View.VISIBLE
         b.toolListScroll.visibility = View.GONE
         b.toolTitle.setText(item.nameRes)
-        b.toolAction.visibility =
-            if (id == "task") View.VISIBLE else View.GONE
+        // 有「完整页面」的工具才显示右上角入口（待办 / 爬取 / 教学资料），
+        // 其余工具一律隐藏 —— v1.0.7 需求 7 就是把遗留的「新建待办」加号收掉。
+        val fullPage = ToolRegistry.fullPageOf(id)
+        b.toolAction.visibility = if (fullPage != null) View.VISIBLE else View.GONE
+        b.toolAction.text = getString(R.string.toolbox_full_page)
+        b.toolAction.setOnClickListener {
+            if (fullPage != null) ActivityUtils.startActivity(requireContext(), fullPage)
+        }
 
         val fm = childFragmentManager
         val existing = fm.findFragmentByTag(TAG_EMBEDDED)
