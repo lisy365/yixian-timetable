@@ -45,6 +45,12 @@ object CrawlerStorage {
     const val CATEGORY_SCORE = "score"
     const val CATEGORY_TIMETABLE = "timetable"
 
+    /** v1.0.5：校级公开站点（教务部等） */
+    const val CATEGORY_SCHOOL = "school"
+
+    /** v1.0.5：各学院官网公开栏目 */
+    const val CATEGORY_COLLEGE = "college"
+
     /** 全部一级分类（建目录 + UI 展示用） */
     val CATEGORIES = linkedMapOf(
         CATEGORY_PROFILE to "培养方案 / 学生信息",
@@ -52,7 +58,9 @@ object CrawlerStorage {
         CATEGORY_TEACHER to "任课教师信息",
         CATEGORY_EXAM to "考试安排",
         CATEGORY_SCORE to "成绩",
-        CATEGORY_TIMETABLE to "课表原始数据"
+        CATEGORY_TIMETABLE to "课表原始数据",
+        CATEGORY_SCHOOL to "教务部公开站点",
+        CATEGORY_COLLEGE to "学院官网公开栏目"
     )
 
     /** 根目录 */
