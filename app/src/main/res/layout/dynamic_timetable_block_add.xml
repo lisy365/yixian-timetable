@@ -39,6 +39,19 @@
 <!--        android:background="@drawable/radius_accent_round_icon_bg"-->
 <!--        android:backgroundTint="?attr/backgroundColorBottomAsTint"-->
 
+        <!-- v1.0.5：新增课程块同样标注「第N节」 -->
+        <TextView
+            android:id="@+id/period"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="3dp"
+            android:alpha="0.85"
+            android:textColor="?attr/colorAccent"
+            android:textSize="8sp"
+            android:textStyle="bold" />
+
     </FrameLayout>
 
 </merge>
