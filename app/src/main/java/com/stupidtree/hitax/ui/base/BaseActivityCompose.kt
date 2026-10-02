@@ -41,6 +41,8 @@ abstract class BaseActivityCompose<T : ViewModel> : AppCompatActivity() {
     //为Activity中的View设置行为
     protected abstract fun initViews()
     override fun onCreate(savedInstanceState: Bundle?) {
+        // v1.0.5：与 BaseActivity 一致，主题必须在 super.onCreate() 之前应用
+        com.stupidtree.style.ThemeTools.applyTheme(this)
         super.onCreate(savedInstanceState)
         //对ViewModel进行初始化
         getViewModelClass().let {
