@@ -282,6 +282,75 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <!--
+      ===== 统一设置面板的行样式（v1.0.7） =====
+      把「84dp 卡片 + 48dp 圆角图标 + 标题/副标题 + 右箭头」这套视觉固化成 style，
+      设置面板里每加一行只需要写 id 和文案，不用再复制一大段属性。
+    -->
+    <style name="settings_row_card">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
+        <item name="cardBackgroundColor">?attr/backgroundColorSecond</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+
+    <style name="settings_row_inner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingBottom">14dp</item>
+    </style>
+
+    <style name="settings_row_icon_frame">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_marginEnd">14dp</item>
+    </style>
+
+    <style name="settings_row_texts">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="settings_row_title">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="settings_row_subtitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:textColor">?attr/textColorSecondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="settings_row_chevron">
+        <item name="android:layout_width">22dp</item>
+        <item name="android:layout_height">22dp</item>
+        <item name="android:contentDescription">@string/toolbox_open</item>
+        <item name="srcCompat">@drawable/ic_baseline_keyboard_arrow_right_24</item>
+        <item name="tint">?attr/colorPrimaryDisabled</item>
+    </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
