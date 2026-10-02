@@ -55,10 +55,18 @@ class ToolboxFragment : BaseFragment<ToolboxViewModel, FragmentToolboxBinding>()
         }
     }
 
-    /** 供宿主 Activity（MainActivity）在显示本页时清理内嵌状态 */
+    /**
+     * 宿主 Activity 切到本页时回调。
+     *
+     * [BaseFragment] 在 `onDestroyView` 里会把 `binding` 置空，
+     * 而 `MainActivity` 的 ViewPager 会把本页常驻内存，所以这里必须先判空，
+     * 避免在视图已销毁时操作 binding 造成 NPE。
+     */
     fun onPageShown() {
-        // 保留上次的选择，用户体验更连贯；这里只做一次数据刷新
         viewModel.refresh()
+        binding ?: return
+        // 内嵌工具在页面重新可见时同步一次（例如待办列表在别处被改过）
+        renderEmbedded(embeddedId)
     }
 
     private fun openTool(item: ToolRegistry.ToolItem) {
@@ -103,6 +111,8 @@ class ToolboxFragment : BaseFragment<ToolboxViewModel, FragmentToolboxBinding>()
         if (existing != null && existing.javaClass.name == fragmentClassOf(item)) {
             return
         }
+        // 只在视图已创建时做事务，避免 onPageShown() 在视图已销毁时被调用
+        if (isAdded.not() || view == null) return
         val tx = fm.beginTransaction()
         existing?.let { tx.remove(it) }
         if (item is ToolRegistry.Embedded) {
