@@ -75,7 +75,8 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- v1.0.5：重复课程同样标注节次 -->
+        <!-- v1.0.5：重复课程同样标注节次
+             v1.0.7：圆角矩形背景，不再用 oval -->
         <TextView
             android:id="@+id/period"
             android:layout_width="wrap_content"
@@ -84,11 +85,12 @@
             android:layout_marginStart="3dp"
             android:layout_marginTop="2dp"
             android:alpha="0.85"
-            android:background="@drawable/element_round_white_light"
+            android:background="@drawable/element_period_badge"
+            android:includeFontPadding="false"
             android:paddingStart="3dp"
-            android:paddingTop="0dp"
+            android:paddingTop="1dp"
             android:paddingEnd="3dp"
-            android:paddingBottom="0dp"
+            android:paddingBottom="1dp"
             android:text="第1节"
             android:textColor="@color/white"
             android:textSize="8sp"
