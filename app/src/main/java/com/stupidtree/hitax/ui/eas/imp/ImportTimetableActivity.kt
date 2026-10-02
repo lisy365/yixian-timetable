@@ -14,9 +14,11 @@ import com.stupidtree.style.base.BaseListAdapter
 import com.stupidtree.component.data.DataState
 import com.stupidtree.hitax.data.model.eas.EASToken
 import com.stupidtree.hitax.data.source.preference.EasPreferenceSource
+import com.stupidtree.hitax.ui.crawler.CrawlerActivity
 import com.stupidtree.hitax.ui.eas.EASActivity
 import com.stupidtree.hitax.ui.widgets.PopUpCalendarPicker
 import com.stupidtree.style.widgets.PopUpCheckableList
+import com.stupidtree.style.widgets.PopUpText
 import com.stupidtree.hitax.ui.widgets.PopUpTimePeriodPicker
 import com.stupidtree.hitax.ui.widgets.WidgetUtils
 import com.stupidtree.hitax.utils.AnimationUtils
@@ -29,6 +31,12 @@ class ImportTimetableActivity :
     EASActivity<ImportTimetableViewModel, ActivityEasImportBinding>() {
 
     private lateinit var scheduleStructureAdapter: TimetableStructureListAdapter
+
+    companion object {
+        /** v1.0.7：记住「导入后是否已经问过要不要爬取」 */
+        private const val SP_CRAWL = "yixian_crawl"
+        private const val KEY_ASKED = "asked_after_import_v1"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -157,27 +165,35 @@ class ImportTimetableActivity :
             )
             //通知小组件
             WidgetUtils.sendRefreshToAll(this)
-//            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-//                binding.buttonImport.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-//            } else {
-//                binding.buttonImport.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-//            }
-//            val iconId: Int
-//            if (it.state == DataState.STATE.SUCCESS) {
-//                iconId = R.drawable.ic_baseline_done_24
-//                Toast.makeText(getThis(), R.string.import_success, Toast.LENGTH_SHORT).show()
-//            } else {
-//                iconId = R.drawable.ic_baseline_error_24
-//                Toast.makeText(getThis(), R.string.import_failed, Toast.LENGTH_SHORT).show()
-//            }
-//            val bitmap = ImageUtils.getResourceBitmap(getThis(), iconId)
-//            binding.buttonImport.doneLoadingAnimation(
-//                getColorPrimary(), bitmap
-//            )
-//            binding.buttonImport.postDelayed({
-//                binding.buttonImport.revertAnimation()
-//            }, 600)
+            // v1.0.7 需求 9：课表导入成功后，顺手把教务信息也爬一份到本机。
+            // 这里只提示一次（用 SharedPreferences 记住用户的选择），避免每次导入都打扰。
+            if (it.state == DataState.STATE.SUCCESS) {
+                askCrawlAfterImport()
+            }
         }
+    }
+
+    /**
+     * 导入完成后的「顺带爬一次」提示（v1.0.7 需求 9）
+     *
+     * 用 `SP("yixian_crawl")` 里的标记记住用户已经做过选择，之后不再打扰；
+     * 用户答「开始爬取」就跳到爬取页并自动开始。
+     */
+    private fun askCrawlAfterImport() {
+        val sp = getSharedPreferences(SP_CRAWL, MODE_PRIVATE)
+        if (sp.getBoolean(KEY_ASKED, false)) return
+        sp.edit().putBoolean(KEY_ASKED, true).apply()
+        val termCode = viewModel.selectedTermLiveData.value?.getCode()
+        PopUpText()
+            .setTitle(R.string.crawler_after_import_title)
+            .setText(getString(R.string.crawler_after_import_msg))
+            .setDialogCancelable(true)
+            .setOnConfirmListener(object : PopUpText.OnConfirmListener {
+                override fun OnConfirm() {
+                    startActivity(CrawlerActivity.autoStartIntent(getThis(), termCode))
+                }
+            })
+            .show(supportFragmentManager, "crawl_after_import")
     }
 
     /**
