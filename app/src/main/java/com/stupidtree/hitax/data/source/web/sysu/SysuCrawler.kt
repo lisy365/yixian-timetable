@@ -87,37 +87,88 @@ class SysuCrawler(
             Source("syllabus", CAT_SYLLABUS, "课程教学大纲")
         )
 
-        /** 培养方案查询的候选入口（Wisedu 教务各版本差异较大，逐个尝试） */
+        /**
+         * 培养方案查询的候选入口。
+         *
+         * v1.0.7：这些路径是**从前端 bundle 里挖出来的**，不是猜的。
+         * jwxt 的每个功能其实是一个独立微应用（`/jwxt/mk/<app>/`），培养方案属于
+         * `training-programe` 模块（注意官方拼写就是 `training-programe`，
+         * 而且有重复的 `training-programe/training-programe/` 前缀，**不要"顺手改对"**）：
+         *
+         * - `undergradute/student/personalMainProgram`：**无参数**，身份取自会话，
+         *   返回 `{COLLEGE, GRADE, TEACHPLANNUMBER, STUDENTNUMBER, PROFESSIONNAME, PROFESSIONCODE}`（全大写）；
+         * - `undergradute/baseinfo/left`：培养方案树，需要 `programType=student` 才是本人的方案；
+         * - `courseSetting/pageList` 等以 `trainingProgramId` 为键的明细。
+         */
         val TRAINING_PLAN_PATHS = listOf(
-            "/training-program/trainingProgram/queryTrainingProgram",
-            "/training-program/trainingProgram/list",
-            "/training-program/queryTrainingProgram",
-            "/cultivate-plan/cultivatePlan/queryPlan",
-            "/base-info/training-program/list"
+            "/training-programe/training-programe/undergradute/student/personalMainProgram",
+            "/training-programe/training-programe/undergradute/baseinfo/left",
+            "/training-programe/training-programe/undergradute/student/list"
         )
 
-        /** 教学大纲查询的候选入口 */
+        /**
+         * 教学大纲查询的候选入口（同样来自 bundle 证据）
+         *
+         * 入口在**选课微应用**的「已选课程」页：点课程号会调
+         * `courseoutline/getalloutlineinfo?courseNum=&auditStatus=99`，
+         * **大纲正文要再调一次** `courseoutline/outlinedetailbycourseid?courseId=`；
+         * 只调第一个接口拿不到正文。
+         *
+         * `auditStatus=99` 是前端写死的（教研科最终通过），否则会提示
+         * 「该课程教学大纲尚未在系统内完成提交审核」。
+         */
         val SYLLABUS_PATHS = listOf(
-            "/course-info/courseOutline/list",
-            "/course-info/syllabus/querySyllabus",
-            "/teaching-task/courseOutline/list",
-            "/course-manage/courseOutline/queryOutline",
-            "/base-info/course-outline/list"
+            "/training-programe/courseoutline/getalloutlineinfo",
+            "/training-programe/courseoutline/outlinedetailbycourseid",
+            "/training-programe/courseoutline/showOutlineUpdataCourse"
         )
 
-        /** 教学大纲兜底页面（抓 HTML 文本） */
+        /** 选课微应用的「已选课程」数据源（用于拿到 courseNum / courseId） */
+        const val PATH_SELECTED_COURSES = "/choose-course-front-server/selectedCourse/list"
+
+        /** 教学大纲审核状态：99 = 教研科通过（前端写死值） */
+        const val OUTLINE_AUDIT_PASSED = "99"
+
+        /** 培养方案树里标识「学生本人方案」的参数值 */
+        const val PROGRAM_TYPE_STUDENT = "student"
+
+        /**
+         * 教学大纲兜底页面（抓 HTML 文本）
+         *
+         * 注意：v1.0.7 起真实入口是**选课微应用的「已选课程」页**
+         * （`/jwxt/mk/courseSelection/`，SPA 的 hash 路由抓不到内容），
+         * 所以这里只用真实可取的页面，抓不到就把失败原因写进日志。
+         */
         val SYLLABUS_PAGES = listOf(
-            "/course-info/syllabus",
-            "/teaching-task/course-outline"
+            "/mk/courseSelection/",
+            "/course-info/syllabus"
         )
 
-        /** 培养方案兜底页面 */
+        /** 培养方案兜底页面（同上，SPA 路由不作为抓取目标） */
         val TRAINING_PLAN_PAGES = listOf(
-            "/training-program/trainingProgram",
-            "/training-program"
+            "/mk/",
+            "/training-programe/training-programe/undergradute/student/personalMainProgram"
         )
 
         const val DEFAULT_WEEKS = 20
+
+        /** 培养方案明细最多抓几个方案（防止树很大时请求过多） */
+        const val MAX_PLAN_DETAILS = 6
+
+        /** 其它 Wisedu 版本教务的培养方案入口（逐个兜底，不是主路径） */
+        val LEGACY_TRAINING_PLAN_PATHS = listOf(
+            "/training-program/trainingProgram/queryTrainingProgram",
+            "/training-program/trainingProgram/list",
+            "/training-program/queryTrainingProgram",
+            "/cultivate-plan/cultivatePlan/queryPlan"
+        )
+
+        /** 其它 Wisedu 版本教务的教学大纲入口（逐个兜底，不是主路径） */
+        val LEGACY_SYLLABUS_PATHS = listOf(
+            "/course-info/courseOutline/list",
+            "/teaching-task/courseOutline/list",
+            "/base-info/course-outline/list"
+        )
     }
 
     private val api = SysuApi(token.cookies).also { it.hostOverride = host }
@@ -134,6 +185,14 @@ class SysuCrawler(
     private var courses: List<CourseItem> = emptyList()
     private var termCode: String = ""
     private var structure: List<TimePeriodInDay> = Timetable().getDefaultTimeStructure()
+
+    /**
+     * 指定学期。导入课表后自动爬取时，用户关心的是刚导入的那个学期，
+     * 而不是教务接口返回的「当前学期」。
+     */
+    fun preferTerm(code: String?) {
+        if (!code.isNullOrBlank()) termCode = code
+    }
 
     fun getStudentInfo(): JSONObject? = studentInfo
 
@@ -443,20 +502,83 @@ class SysuCrawler(
         val faculty = firstOf(si, "facultyName", "yxmc", "collegeName") ?: token.school
         log("  · 定位：学院=${faculty ?: "-"} 专业=${major ?: "-"} 年级=${grade ?: "-"}")
 
+        // ---- 1) 个人培养方案总览：无需参数，身份取自会话（v1.0.7 从 bundle 证实）----
+        val main = api.get("/training-programe/training-programe/undergradute/student/personalMainProgram")
+        if (main != null && hasData(main)) {
+            log("  · 命中「个人培养方案」接口（personalMainProgram）")
+            val payload = JSONObject()
+            payload.put("mainProgram", main)
+            r.itemCount = 1
+            r.message = "个人培养方案总览"
+
+            // ---- 2) 培养方案树：programType=student 才是本人方案 ----
+            val left = api.get(
+                "/training-programe/training-programe/undergradute/baseinfo/left",
+                mapOf(
+                    "grade" to (grade ?: ""),
+                    "professionCode" to firstOf(si, "professionCode", "zydm").orEmpty(),
+                    "professionId" to firstOf(si, "professionId", "zyid").orEmpty(),
+                    "programType" to PROGRAM_TYPE_STUDENT,
+                    "stuNum" to (token.stuId ?: "")
+                )
+            )
+            if (left != null && hasData(left)) {
+                payload.put("planTree", left)
+                log("  · 命中培养方案树（baseinfo/left，programType=student）")
+                // ---- 3) 按培养方案 id 抓明细 ----
+                val ids = collectTrainingProgramIds(left)
+                if (ids.isNotEmpty()) {
+                    log("  · 方案条目 ${ids.size} 个，逐个抓取课程设置")
+                    val details = JSONArray()
+                    for (id in ids.take(MAX_PLAN_DETAILS)) {
+                        val body = JSONObject()
+                        body.put("pageNo", 1)
+                        body.put("pageSize", 1000)
+                        val param = JSONObject()
+                        param.put("trainingProgramId", id)
+                        body.put("param", param)
+                        val page = api.postJson(
+                            "/training-programe/courseSetting/pageList", body.toString()
+                        )
+                        if (page != null && hasData(page)) {
+                            val one = JSONObject()
+                            one.put("trainingProgramId", id)
+                            one.put("courses", page)
+                            details.put(one)
+                            log("  · 方案 $id 课程设置已获取")
+                        } else {
+                            log("  · 方案 $id 课程设置为空")
+                        }
+                    }
+                    if (details.length() > 0) payload.put("courseSettings", details)
+                } else {
+                    log("  · 树里没有解析到 trainingProgramId，跳过明细")
+                }
+            } else {
+                log("  · 培养方案树为空（code=${left?.opt("code") ?: "无响应"}）")
+            }
+            r.message = "个人培养方案（含课程设置）"
+            r.saves.add(PendingSave(CAT_PROFILE, "培养方案", payload.toString(), r.message,
+                "/training-programe/training-programe/undergradute/student/personalMainProgram", false))
+            return
+        }
+        log("  · personalMainProgram 无数据（code=${main?.opt("code") ?: "无响应"}）")
+
+        // ---- 退化：老路径逐个试（兼容其它版本的 Wisedu 教务）----
         val params = linkedMapOf(
             "academicYear" to termCode,
             "majorName" to (major ?: ""),
             "grade" to (grade ?: ""),
             "facultyName" to (faculty ?: "")
         )
-        for (path in TRAINING_PLAN_PATHS) {
+        for (path in LEGACY_TRAINING_PLAN_PATHS) {
             val obj = try {
                 api.get(path, params)
             } catch (e: Exception) {
                 null
             }
             if (obj != null && hasData(obj)) {
-                log("  · 命中接口：$path")
+                log("  · 命中兼容接口：$path")
                 r.itemCount = 1
                 r.message = "接口 $path"
                 r.saves.add(PendingSave(CAT_PROFILE, "培养方案", obj.toString(), r.message, path, false))
@@ -475,8 +597,27 @@ class SysuCrawler(
             }
         }
         r.state = State.FAILED
-        r.message = "教务未向学生端开放培养方案查询（已尝试 ${TRAINING_PLAN_PATHS.size} 个接口 + ${TRAINING_PLAN_PAGES.size} 个页面）"
-        log("  !! 教务系统未向学生端开放培养方案查询")
+        r.message = "培养方案接口无数据（已尝试 personalMainProgram 与 " +
+                "${LEGACY_TRAINING_PLAN_PATHS.size} 个兼容入口）"
+        log("  !! 培养方案未取到数据；如果你在 PC 端能看到「个人培养方案查看」，请把日志发给作者")
+    }
+
+    /** 从培养方案树里宽松地收集 trainingProgramId（不同版本字段名不一致） */
+    fun collectTrainingProgramIds(node: Any?, out: MutableList<String> = mutableListOf()): List<String> {
+        when (node) {
+            is JSONArray -> for (i in 0 until node.length()) collectTrainingProgramIds(node.opt(i), out)
+            is JSONObject -> {
+                for (k in arrayOf("id", "originTrainingProgramId", "trainingProgramId", "programId")) {
+                    val v = node.optString(k).trim()
+                    if (v.isNotEmpty() && v != "null" && !out.contains(v)) out.add(v)
+                }
+                for (k in node.keys()) {
+                    val child = node.opt(k)
+                    if (child is JSONArray || child is JSONObject) collectTrainingProgramIds(child, out)
+                }
+            }
+        }
+        return out
     }
 
     // ------------------------------------------------------------------
@@ -491,43 +632,138 @@ class SysuCrawler(
             return
         }
         log("  · 待查课程 ${names.size} 门")
-        var found = 0
 
-        // 7.1 逐门课程试 JSON 接口
+        // ---- 1) 先拿「已选课程」列表，才有 courseNum / courseId（选课微应用的数据源）----
+        val selected = fetchSelectedCourses()
+        if (selected.isEmpty()) {
+            log("  · 已选课程列表为空，退化为按课程名逐一试接口")
+        } else {
+            log("  · 已选课程 ${selected.size} 条（来自 ${PATH_SELECTED_COURSES}）")
+        }
+
+        // 课程名 -> (courseNum, courseId)
+        val byName = HashMap<String, Pair<String?, String?>>()
+        for (row in selected) {
+            val n = firstOf(row, "courseName", "kcmc") ?: continue
+            byName[n] = firstOf(row, "courseNum", "courseNumber", "kcdm") to
+                    firstOf(row, "courseId", "courseNumber", "id")
+        }
+
+        var found = 0
         for (course in names) {
-            var hit: String? = null
-            var payload: String? = null
-            for (path in SYLLABUS_PATHS) {
-                val obj = try {
-                    api.get(path, mapOf("courseName" to course, "academicYear" to termCode))
-                } catch (e: Exception) {
-                    null
-                }
-                if (obj != null && hasData(obj)) {
-                    hit = path
-                    payload = obj.toString()
-                    break
+            val pair = byName[course]
+            val courseNum = pair?.first
+            val courseId = pair?.second
+
+            // 1.1 大纲表头 + courseId
+            var header: JSONObject? = null
+            if (!courseNum.isNullOrBlank()) {
+                header = api.get(
+                    "/training-programe/courseoutline/getalloutlineinfo",
+                    mapOf("courseNum" to courseNum, "auditStatus" to OUTLINE_AUDIT_PASSED)
+                )
+                if (header != null && hasData(header)) {
+                    log("  · 《$course》大纲表头已获取（courseNum=$courseNum，auditStatus=$OUTLINE_AUDIT_PASSED）")
+                } else {
+                    log("  · 《$course》大纲表头为空（courseNum=$courseNum，code=${header?.opt("code") ?: "无响应"}）")
+                    header = null
                 }
             }
-            if (payload != null && hit != null) {
-                log("  · 《$course》大纲已获取（$hit）")
-                r.saves.add(PendingSave(CAT_SYLLABUS, "教学大纲-$course", payload, "接口 $hit", hit, false))
+
+            // 1.2 正文：必须再调一次 outlinedetailbycourseid，否则只有表头
+            var detail: JSONObject? = null
+            val cid = courseId ?: header?.let { extractCourseId(it) }
+            if (!cid.isNullOrBlank()) {
+                detail = api.get(
+                    "/training-programe/courseoutline/outlinedetailbycourseid",
+                    mapOf("courseId" to cid)
+                )
+                if (detail != null && hasData(detail)) {
+                    log("  · 《$course》大纲正文已获取（courseId=$cid）")
+                } else {
+                    log("  · 《$course》大纲正文为空（courseId=$cid）")
+                    detail = null
+                }
+            }
+
+            if (header != null || detail != null) {
+                val payload = JSONObject()
+                payload.put("courseName", course)
+                payload.put("courseNum", courseNum ?: "")
+                payload.put("courseId", cid ?: "")
+                header?.let { payload.put("header", it) }
+                detail?.let { payload.put("detail", it) }
+                r.saves.add(
+                    PendingSave(
+                        CAT_SYLLABUS, "教学大纲-$course", payload.toString(),
+                        if (detail != null) "表头 + 正文" else "仅表头",
+                        "/training-programe/courseoutline/getalloutlineinfo", false
+                    )
+                )
                 found++
-            } else {
-                log("  · 《$course》大纲接口无数据")
             }
         }
+
         if (found > 0) {
             r.itemCount = found
             r.message = "$found 门课程大纲"
             return
         }
 
-        // 7.2 兜底：抓大纲页面文本，说明入口位置
+        // ---- 2) 兜底：逐个试剩余候选入口 ----
+        for (course in names.take(3)) {
+            for (path in SYLLABUS_PATHS.drop(1)) {
+                val obj = try {
+                    api.get(path, mapOf("courseNum" to course, "courseNumber" to course,
+                        "auditStatus" to OUTLINE_AUDIT_PASSED, "academicYear" to termCode))
+                } catch (e: Exception) {
+                    null
+                }
+                if (obj != null && hasData(obj)) {
+                    log("  · 《$course》命中兼容接口：$path")
+                    r.saves.add(
+                        PendingSave(CAT_SYLLABUS, "教学大纲-$course", obj.toString(), "接口 $path", path, false)
+                    )
+                    found++
+                    break
+                }
+            }
+        }
+        if (found > 0) {
+            r.itemCount = found
+            r.message = "$found 门课程大纲（兼容入口）"
+            return
+        }
+
+        // ---- 3) 再兜底：老路径 ----
+        for (course in names) {
+            for (path in LEGACY_SYLLABUS_PATHS) {
+                val obj = try {
+                    api.get(path, mapOf("courseName" to course, "academicYear" to termCode))
+                } catch (e: Exception) {
+                    null
+                }
+                if (obj != null && hasData(obj)) {
+                    log("  · 《$course》命中旧接口：$path")
+                    r.saves.add(
+                        PendingSave(CAT_SYLLABUS, "教学大纲-$course", obj.toString(), "接口 $path", path, false)
+                    )
+                    found++
+                    break
+                }
+            }
+        }
+        if (found > 0) {
+            r.itemCount = found
+            r.message = "$found 门课程大纲（旧入口）"
+            return
+        }
+
+        // ---- 4) 页面文本兜底 ----
         for (p in SYLLABUS_PAGES) {
             val page = tryFetchPage(p)
             if (page != null) {
-                log("  · 接口不可用，已保存大纲页面文本（$p，${page.length} 字）")
+                log("  · 接口均不可用，已保存大纲页面文本（$p，${page.length} 字）")
                 r.state = State.SUCCESS
                 r.message = "接口不可用，已保存页面文本备用"
                 r.saves.add(PendingSave(CAT_SYLLABUS, "教学大纲页面", page, r.message, p, true))
@@ -535,8 +771,65 @@ class SysuCrawler(
             }
         }
         r.state = State.FAILED
-        r.message = "教务未向学生端开放教学大纲查询（已尝试 ${SYLLABUS_PATHS.size} 个接口 + ${SYLLABUS_PAGES.size} 个页面）"
-        log("  !! 教学大纲未开放；已把尝试过的入口写进日志")
+        r.message = "教学大纲未取到数据（已尝试选课入口 + ${SYLLABUS_PATHS.size} 个接口 + " +
+                "${LEGACY_SYLLABUS_PATHS.size} 个旧入口）；若 PC 端「已选课程」里能看到大纲，" +
+                "通常是课程号没取到，请把日志发给作者"
+        log("  !! 教学大纲未取到数据")
+    }
+
+    /**
+     * 抓「已选课程」列表（选课微应用 `choose-course-front-server`）
+     *
+     * 返回的每行含 `courseNum` / `courseId` / `courseName`，是查大纲的关键。
+     */
+    private fun fetchSelectedCourses(): List<JSONObject> {
+        val body = JSONObject()
+        body.put("pageNo", 1)
+        body.put("pageSize", 500)
+        body.put("total", 0)
+        val param = JSONObject()
+        param.put("semesterYear", termCode)
+        body.put("param", param)
+        val resp = try {
+            api.postJson(PATH_SELECTED_COURSES, body.toString())
+        } catch (e: Exception) {
+            log("  · 已选课程接口异常：${e.message}")
+            null
+        } ?: return emptyList()
+        if (!api.staticIsSuccess(resp)) {
+            log("  · 已选课程接口返回 code=${resp.opt("code")}")
+            return emptyList()
+        }
+        val data = resp.opt("data")
+        val rows = when (data) {
+            is JSONArray -> data
+            is JSONObject -> data.optJSONArray("rows")
+                ?: data.optJSONArray("list")
+                ?: data.optJSONArray("records")
+            else -> null
+        } ?: return emptyList()
+        return (0 until rows.length()).mapNotNull { rows.optJSONObject(it) }
+    }
+
+    /** 从大纲表头里宽松取 courseId */
+    fun extractCourseId(node: Any?): String? {
+        when (node) {
+            is JSONObject -> {
+                for (k in arrayOf("courseId", "COURSEID", "courseNum")) {
+                    val v = node.optString(k).trim()
+                    if (v.isNotEmpty() && v != "null") return v
+                }
+                // 常见结构：{data:{outlineInfo:{courseId:...}}}
+                for (k in node.keys()) {
+                    val child = node.opt(k)
+                    if (child is JSONObject) extractCourseId(child)?.let { return it }
+                }
+            }
+            is JSONArray -> for (i in 0 until node.length()) {
+                extractCourseId(node.opt(i))?.let { return it }
+            }
+        }
+        return null
     }
 
     // ------------------------------------------------------------------
