@@ -10,11 +10,12 @@
 | 项 | 值 |
 | --- | --- |
 | 项目源码 | `C:\dshproject\hita\sysu`（Android Studio 可直接打开） |
-| 包名 / 版本 | `com.stupidtree.hitax.yixian`，versionName `1.0.2`，versionCode `1000200` |
+| 包名 / 版本 | `com.stupidtree.hitax.yixian`，versionName `1.0.5`，versionCode `1000500` |
 | 语言 / 构建 | Kotlin 1.9.20 + AGP 8.5.2 + Gradle 8.7 + JDK 17 |
 | SDK | compileSdk 35 / minSdk 23 / targetSdk 33 |
 | 仓库 | https://github.com/lisy365/yixian-timetable |
 | 发布产物 | 仓库内 `release/yixian-timetable-<tag>.apk` + GitHub Release 资产 |
+| 版本快照（回滚用） | `C:\dshproject\hita\_versions\<tag>`，见第 9 节 |
 
 模块：`app`（主应用）、`component`、`style`、`sync`、`user`、`theta`（θ社区，入口已隐藏但保留代码）。
 
@@ -23,11 +24,16 @@
 - `SysuApi.kt` —— jwxt 接口封装（请求头/Cookie/错误码）
 - `SysuSession.kt` —— 统一身份认证回调与 Cookie 解析
 - `SysuTimetableParser.kt` —— 课表单元格解析（键值串 / 周次 / 节次），**纯函数，可单测**
+- `SysuCrawler.kt` —— v1.0.5 新增：教务信息爬虫（培养方案/大纲/教师/考试/成绩/课表）
 - `SysuWebSource.kt` —— `EASService` 实现：登录校验、学期、课表、成绩、考试
 
 新增功能所在位置：课表背景 `data/source/preference/TimetableBackgroundSource.kt` + `ui/main/timetable/panel/`；
-待办 `ui/task/`（`FragmentTask` 是底部导航页，`TaskManagerActivity` 是全屏管理页）；
-提醒通知 `utils/NotificationUtils.kt`、`utils/ReminderScheduler.kt`、`utils/AlarmReceiver.kt`、`utils/BootReceiver.kt`、`ui/settings/`。
+待办 `ui/task/`（v1.0.5 起内嵌在「小工具」板块里，`TaskManagerActivity` 仍是全屏管理页）；
+小工具注册表 `ui/tools/ToolRegistry.kt`；爬虫 `ui/crawler/` + `data/repository/CrawlerStorage.kt`；
+主题色板 `utils/ThemePalette.kt` + `utils/ThemePaletteRegistry.kt` + `ui/settings/PopUpThemePicker.kt`；
+时间表网格 `utils/TimetableGrid.kt`；
+提醒通知 `utils/NotificationUtils.kt`、`utils/ReminderScheduler.kt`、`utils/AlarmReceiver.kt`、
+`utils/BootReceiver.kt`、`utils/KeepAliveService.kt`、`utils/QuoteProvider.kt`、`ui/settings/`。
 
 ---
 
@@ -58,12 +64,15 @@ cmd /c "C:\dshproject\hita\build.cmd" --no-daemon :app:assembleRelease
    - Node 脚本访问外网需要 `process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"`。
    - `npm install` 要加 `--cache C:\dshproject\hita\_npmcache`（默认缓存目录不可写）。
 2. **不能用 pipes 启动子进程、不能跑模拟器**（虚拟化被禁）→ 无法真机/模拟器 UI 测试，只能靠：编译、静态核验（aapt2/apksigner）、以及下面第 3 节的 JVM 测试。
+3. **`build.cmd` 里额外设了 `TEMP`/`TMP` 指向 `C:\dshproject\hita\_tmp`**：
+   默认的 `%LOCALAPPDATA%\Temp` 在本机对 Kotlin 编译器可能不可写，会报
+   `java.nio.file.AccessDeniedException: ...kotlin-compiler-in-*.alive`。别把这个改动删掉。
 
 ---
 
 ## 3. 自动化测试（改完代码务必跑）
 
-脚手架在 `C:\dshproject\hita\_scratch\harness`，共两类：
+脚手架在 `C:\dshproject\hita\_scratch\harness`，共三类：
 
 ### (a) 离线端到端（mock 教务 + 真实生产代码）
 
@@ -74,12 +83,21 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\dshproject\hita\_scr
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\dshproject\hita\_scratch\harness\run.ps1"
 ```
 
-覆盖：会话/Cookie 解析、周次解析、课表单元格解析（真实 `kcmc:…;;rkjs:…;;skrq:第N周/…` 格式）、逐周合并、成绩/考试解析、待办模型、通知文案模板、提醒触发时间计算、中大默认作息表。当前 **115 项断言全绿**。
+覆盖：会话/Cookie 解析、周次解析、课表单元格解析（真实 `kcmc:…;;rkjs:…;;skrq:第N周/…` 格式）、逐周合并、成绩/考试解析、待办模型、通知文案模板、提醒触发时间计算、中大官方作息表（v1.0.5 起为 **11 节**）、**教务信息爬虫**。当前 **147 项断言全绿**。
 
 v1.0.4 起另有一个独立入口 `_scratch/harness/HarnessV104.kt`（`run.ps1` 会自动跑），
 覆盖新增的两块纯逻辑：调色盘换算 `com.stupidtree.style.widgets.ColorMath`（HSV / `#RRGGBB` 解析与格式化）
 与保活排期 `com.stupidtree.hitax.utils.KeepAlivePlan`（触发时刻、重排间隔、精确闹钟判定），**69 项断言全绿**。
-这两个类都刻意不引用 `android.graphics` / Android API，所以能直接在 JVM 里跑 —— 新加纯逻辑请沿用这个做法。
+
+v1.0.5 起再加 `_scratch/harness/HarnessV105.kt`（`run.ps1` 同样会自动跑），覆盖：
+时间表网格 `com.stupidtree.hitax.utils.TimetableGrid`（固定 11 节、行区间换算、第N节标签、旧结构识别与规整）、
+主题色板 `com.stupidtree.hitax.utils.ThemePalette`（预设表、id 规整、昼夜取色、颜色工具）、
+励志短句 `com.stupidtree.hitax.utils.QuoteProvider`（内置语录、一言/今日诗词解析、刷新时机、通知文案渲染），
+**86 项断言全绿**。
+
+这些类都刻意不引用 `android.graphics` / Android 资源，所以能直接在 JVM 里跑 —— 新加纯逻辑请沿用这个做法。
+**提示**：给 harness 加断言时，`Harness.kt` / `HarnessV10x.kt` 只把用到的源码文件列进
+`compile.ps1` 的 `$files`，新增纯逻辑类记得同步加进去。
 
 新增功能请同时加断言（`_scratch/harness/Harness.kt`；纯 JVM 桩在 `_scratch/harness/stub/`，安卓 Log/TextUtils/org.json/Room 注解都有 shim）。
 若改了 mock 数据结构，同步改 `_scratch/probe/mock_jwxt.js`。
@@ -233,8 +251,9 @@ DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同
 2. **数据库版本**：当前 `version = 2`（v1→v2 增加了 `note`、`done` 两列）。**再改实体一定要加 `Migration` 并升版本**，否则老用户覆盖安装会崩。
 3. **待办复用 `events` 表**：`type = OTHER`、`subjectId = 'YIXIAN_TASK'`、`timetableId = ''`。
    课表删除用的是 `timetableId in (...)`，所以待办不会被误删；查询待办统一用 `subjectId is 'YIXIAN_TASK'`。
-4. **作息时间只有一份真源**：`Timetable.getDefaultTimeStructure()`；`SysuTimetableParser.buildScheduleStructureFromSections()` 直接复用它，
-   手动新建课表与教务导入课表必须保持一致，改一处即可。
+4. **作息时间只有一份真源**：`Timetable.getDefaultTimeStructure()`（v1.0.5 起为**中大教务部官方 11 节**）；
+   `SysuTimetableParser.buildScheduleStructureFromSections()` 直接复用它，手动新建课表与教务导入课表必须保持一致，改一处即可。
+   UI 侧的规整/换算统一走 `utils/TimetableGrid.kt`（`FIXED_PERIODS = 11`、`normalize()`、`rowRange()`、`periodLabel()`）。
 5. **课表背景按「课表 id」存图**（`files/backgrounds/<id>.jpg`），取当前课表用 `TimetableRepository.getTimetableAt(ts)`
    （内部是 `MAX(startTime) <= ts`，早于所有课表时回退到最早一套 —— 这就是「第一周/假期背景不显示」的修复点）。
 6. **提醒用 AlarmManager + 滚动窗口（7 天）重排**：任何会影响日程/待办/设置的操作后都应调用 `ReminderScheduler.rescheduleAll()`；
@@ -257,6 +276,29 @@ DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同
 12. **BottomSheet 里的 WebView 要禁止弹窗拖拽**：`BottomSheetBehavior` 会在 `onInterceptTouchEvent` 抢走竖直手势，
    导致登录页滑不动。现用 `ui/widgets/ScrollableWebView`（按 DOWN/UP 请求祖先不要拦截）+ `behavior.isDraggable = false`，
    弹窗另给「取消」入口。以后凡是把可滚动内容放进 BottomSheet，都要检查这一条。
+13. **用 PowerShell 改带中文的源码会毁掉编码**（v1.0.5 踩过）：
+   `Get-Content -Raw` + `Set-Content -Encoding utf8` 这条链路在本机把 `TimetableFragment.kt`
+   的中文注释整段写成了乱码（还会把多行挤成一行）。**改文件一律用编辑工具，不要用 PowerShell 做文本替换**；
+   万一中招，`C:\dshproject\hita\_versions\<tag>\tree\...` 里有原文件可以直接拷回来。
+14. **主题色板的运行时切换方式**（v1.0.5）：
+   `BaseActivity.onCreate()` 在 `super.onCreate()` **之前**调 `ThemeTools.applyTheme(this)`，
+   它先 `AppCompatDelegate.setDefaultNightMode(...)` 再 `setTheme(色板 style)`。
+   色板 style 表由 `utils/ThemePaletteRegistry.kt` 注册给 `style` 模块（style 不能反向依赖 app 资源）。
+   `AppTheme.Dark` 显式写在 `values/themes.xml`（**没有**放进 `values-night`），
+   这样"当前是深色还是浅色"只由 `AppCompatDelegate.getDefaultNightMode()` 一处决定，不会和系统配置打架。
+   新增色板要同时改三处：`values/themes.xml`（浅色 + `.Night` 两个 style）、
+   `ThemePalette.PRESETS`、`ThemePaletteRegistry` 的两张映射表。
+15. **时间表网格按「节」等分，不再按钟点**（v1.0.5）：
+   `TimeTableView` 的 `sectionHeight` 语义已从「每小时」变成「每节课」；
+   课程块的行区间由 `TimetableGrid.rowRange()` 决定（优先用 `EventItem.fromNumber/lastNumber`，
+   手动新建的课没有节次号则按时间反推）。
+   左侧 `LeftLabelView` 画「第N节 + 上课时间」，行高必须与网格保持一致（`setRowHeight`）。
+16. **`sysu` 内置的 `SysuCrawler` 一定要把 host 传下去**（v1.0.5）：
+   爬虫内部会复用 `SysuWebSource`（取学期/考试/成绩/总周数），
+   **必须走 `webSource()` 这个带 `host` 的工厂**；直接 `SysuWebSource()` 会连生产环境，
+   离线 harness 里表现为「会话已过期」，真机上则是多打一堆真实请求。
+17. **`release/*.apk` 只保留当前版本**：本地删掉旧 APK 再用 `gh_clean_old_apk.js` 清远端，
+   否则下一次 `gh_sync_hash.js` 会把旧包重新传回仓库。
 
 ---
 
@@ -268,11 +310,99 @@ DSH 有 **goal** 机制：一轮做完如果目标还没达成，它会带着同
 | v1.0.1 | 新增课表背景自定义、待办事项管理、提醒通知（可自定义提前量/重复/文案模板）；修复登录弹窗缺「登录」按钮、开屏与关于页仍用原项目图标 |
 | v1.0.2 | 修复第一周及开学前背景不显示；通知提醒移入「功能中心」设置菜单；待办移至底部导航栏；新增一键统一科目颜色（自选颜色）；导入课表默认作息修正为中大标准时间表；README 写入作者的话 |
 | v1.0.3 | 修复待办在「今日」时间轴不显示（根因是 `getItemViewType` 兜底 `FOOT`；同时把明天及以后的未完成待办并入时间轴，新增待办专用卡片）；修复教务登录页在弹窗内无法上下滑动；修正中大作息「第 3 节 10:10 开始、第 4 节 11:50 结束」 |
-| v1.0.4 | 修复教务登录页点输入框弹不出软键盘；替换残留的原项目图标；科目颜色选择重做为色盘 + 渐变滑杆 + 色号输入框；新增后台保活机制（详见第 6 节第 13~16 条） |
+| v1.0.4 | 修复教务登录页点输入框弹不出软键盘；替换残留的原项目图标；科目颜色选择重做为色盘 + 渐变滑杆 + 色号输入框；新增后台保活机制（详见第 8 节第 3 小节） |
+| v1.0.5 | ① **全局主题色可调**（7 套色板 + 昼夜模式，`PopUpThemePicker`）；② **时间表重构**：每天固定 11 节、按节等分网格、卡片标注「第N节」、**修复下午第一节 14:20**（原 14:30）与第 7/8 节 16:30/17:25，老数据自动迁移；③ **教务信息爬虫**（培养方案/教学大纲/教师/考试/成绩/课表 + 实时日志窗口）；④ 底部「待办」→ **「小工具」板块**（注册表驱动，待办内嵌其中）；⑤ **保活通知文案可自定义 + 公益 API 励志短句**。详见第 9 节 |
 
 ---
 
-## 8. v1.0.4 新增/变更速查（下次改这几块前先看）
+## 9. v1.0.5 新增/变更速查（下次改这几块前先看）
+### 9.1 全局主题色（需求 1）
+- 用户入口：功能中心右上角调色盘按钮（`MainActivity` 的 `switchTheme`）→ `ui/settings/PopUpThemePicker.kt`；
+  长按该按钮仍是旧的「深色→浅色→跟随系统」循环切换。
+- 持久化：`SharedPreferences("theme")`，键 `mode`（`light`/`dark`/`follow`）与 `palette`（色板 id）。全部逻辑在 `style/ThemeTools.kt`。
+- 色板 id → style 的映射在 `utils/ThemePaletteRegistry.kt`；色板数据在 `utils/ThemePalette.kt`。
+- **注意**：色板只覆盖 `colorPrimary / colorPrimaryVariant / colorSecondary / colorSecondaryVariant /
+  colorPrimaryDisabled / backgroundIconColorBottom`；背景、文字、分隔线等仍由 `AppTheme` / `AppTheme.Dark` 提供。
+  布局里凡是写死 `@color/cruel_summer_primary` 的地方（`widget_today_item.xml`、`widget_ic_location.xml`、
+  `element_round_blue.xml`、`SearchActivity` 的兜底色）**不会跟随色板**，属于已知的不一致，
+  下次顺手可以换成 `?attr/colorPrimary`。
+
+### 9.2 时间表 UI + 中大作息（需求 2）
+- 官方作息取自中大教务部官网页脚（`https://jwb.sysu.edu.cn/` 的「作息时间」）：
+  1~4 节上午、5~8 节下午、9~11 节晚上，**共 11 节**，第 5 节 **14:20** 开始。
+- 数据真源：`Timetable.getDefaultTimeStructure()`（11 条）。
+- 网格：`ui/main/timetable/views/TimeTableView.kt` —— 7 列 × 11 行等分，行高 = `TimetableStyleSheet.cardHeight`
+  （默认 180px，可用 `TimetableGrid.rowHeightPx()` 的思路按可用高度收敛）。
+  旧实现的两个 bug 一并修掉：`mHeight` 被赋成打包后的 `MeasureSpec`（今日高亮矩形画到屏幕外）、
+  `notifyRefresh` 在 `requestLayout()` 之后才更新 `sectionHeight`（首帧用旧值）。
+- 左侧栏：`views/LeftLabelView.kt` —— 每行两行文字（节次数字 + `HH:mm`），
+  行高由 `TimetableFragment.applyStructure()` 同步，别再依赖已废弃的 `setStartDate`。
+- 课程卡片：`layout/fragment_timetable_class_card.xml` / `fragment_timetable_duplicate_card.xml`
+  新增 `@+id/period` 角标；文本由 `TimeTableBlockView.periodLabel()` 生成（`第3节` / `第3-4节`）。
+- 老数据迁移：`utils/TimetableStructureMigration.kt`（`HApplication.onCreate` 后台跑一次）。
+  只替换「明显是老默认结构」的课表（`TimetableGrid.isLegacyDefault`），并删掉 `fromNumber > 11` 的课程事件；
+  **不动 Room 版本**（`scheduleStructure` 是 JSON 列，不需要 Migration）。
+- 解析侧保护：`SysuTimetableParser.MAX_SECTION` 由 16 改成 **11**，`parseWeek` 会直接丢弃越界节次
+  —— 否则 `EASRepository` 里的 `schedule[item.begin - 1]` 会 `IndexOutOfBoundsException`。
+
+### 9.3 教务信息爬虫（需求 3）
+- 入口：小工具 → 「教务信息爬取」（`ui/crawler/CrawlerActivity.kt`），
+  或 `ActivityUtils.startActivity(ctx, CrawlerActivity::class.java)`。
+- 抓取逻辑：`data/source/web/sysu/SysuCrawler.kt`（**不碰存储**，结果装在 `Result.saves` 里返回）。
+- 落盘：`data/repository/CrawlerStorage.kt`，目录 `files/crawler/<分类>/<时间戳>-<名称>.json`
+  + `index.json` + 可读的 `index.txt`；「查看已保存内容」会导出到
+  `Android/data/<pkg>/files/crawler-out/` 方便用文件管理器浏览。
+- 七个资源：学生信息、课表原始数据、任课教师（从课表 `rkjs` 聚合）、各课程考试日期、成绩与学分、
+  本专业培养方案、课程教学大纲。
+- **培养方案 / 教学大纲学校未向学生端开放稳定接口**：代码里各有一组候选入口，
+  逐个尝试并写日志；全灭时退化为抓对应页面的可见文本（`SysuApi.getRaw` + jsoup 取 `body().text()`）。
+  日志窗口会明确写出「试了哪些入口、结果如何」，不会静默失败。
+- 想扩到「sysu 各学院」时：新增的抓取源只要往 `SysuCrawler.SOURCES` + `runSource()` 里加一条，
+  并复用 `tryFetchPage()` 抓 HTML；存储分类在 `CrawlerStorage.CATEGORIES` 里加一项即可。
+
+### 9.4 小工具板块（需求 4）
+- 注册表：`ui/tools/ToolRegistry.kt`。两种工具：
+  - `Embedded`：在板块内嵌一个 Fragment（待办就是这样，`factory = { FragmentTask() }`）；
+  - `Launcher`：打开 Activity / 弹窗，`action = { ctx, activity -> ... }`。
+- 加工具 = 往 `ToolRegistry.ALL` 加一条 + 加两个字符串；分组用 `ToolRegistry.Group`。
+- 页面：`ui/tools/ToolboxFragment.kt` + `layout/fragment_toolbox.xml`，
+  列表是「分组标题 + 84dp 卡片」（`layout/item_tool_card.xml`），内嵌区带返回键。
+- 底部导航菜单项 id 由 `navigation_task` 改成 **`navigation_tools`**；`MainActivity` 的 header 用的是
+  `task_layout` / `task_title`（标题文本换成 `@string/title_tools`），**id 没改**，以免连带改一堆绑定。
+
+### 9.5 保活通知文案与励志短句（需求 5）
+- 设置入口：小工具 → 通知提醒 → 「保活通知文案」（`FragmentNotificationSettings` 里
+  `keepalive_title` / `keepalive_content` / `keepalive_quote` / `keepalive_preview` / `keepalive_refresh`）。
+- 存储：`NotificationPreferenceSource` 里 `keepalive_*` 一组键（**新增键一定要同步 `resetToDefault()`**）。
+- 文案合成：`data/repository/KeepAliveNotifier.kt`（用户自定义 > 励志短句 > 默认文案）；
+  短句解析/内置语录/刷新时机在 `utils/QuoteProvider.kt`（默认接口 `https://v1.hitokoto.cn/?c=d&c=i&encode=json`，
+  也兼容今日诗词的字段）；失败自动轮换内置 30 条，**通知里不会出现空白**。
+- 刷新时机：保活服务每 15 分钟一跳，命中 `KeepAlivePlan.shouldRefreshQuote`（6 小时）才联网，
+  网络请求在子线程，成功后用 `KeepAliveService.refreshNotification()` 重贴常驻通知
+  （`startForegroundCompat()` 有 `foregroundStarted` 短路，所以必须显式重贴）。
+
+---
+
+## 10. 版本快照与回滚（v1.0.5 起）
+
+```powershell
+cd C:\dshproject\hita
+node _scratch\version_snapshot.js create v1.0.5   # 打快照（保存改动前的代码）
+node _scratch\version_snapshot.js list            # 列出快照
+node _scratch\version_snapshot.js verify          # 校验每个快照的 sha256
+node _scratch\version_snapshot.js rollback v1.0.4 # 回滚到某个快照
+node _scratch\version_snapshot.js prune 3         # 只保留最近 3 个（最少 3 个，不会删到 3 个以下）
+```
+
+- 快照目录：`C:\dshproject\hita\_versions\<tag>\tree\...` + `MANIFEST.json`（相对路径 + 大小 + sha256）。
+- 覆盖范围与 `gh_sync_hash.js` 一致（`sysu/` 下所有参与发布的文件，排除 `build/`、`local.properties` 等）。
+- **回滚会先删掉「快照里没有」的源码文件再写回**，属于精确复原；回滚前建议先给当前状态打一个快照。
+- 目前保留：`v1.0.4`、`v1.0.5`（每次发版前打一个，至少留 3 个）。
+
+
+---
+
+## 8. v1.0.4 新增/变更速查（v1.0.5 的改动都建立在它们之上）
 
 ### 8.1 软键盘（教务登录）
 - 根因：`InputMethodManager.showSoftInput(view, …)` 只有在 `mServedView === view`
