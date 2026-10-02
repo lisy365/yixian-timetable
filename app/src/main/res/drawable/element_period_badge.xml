@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「第N节」角标的背景：**圆角矩形**，不是圆形。
+
+  v1.0.7 修复：此前角标复用了 `element_round_white_light`（shape=oval，且声明了
+  `<size 28dp x 28dp>`）。TextView 用 wrap_content 时会取 drawable 的固有尺寸，
+  于是角标被撑成一个 28dp 的椭圆 —— 用户看到的「方块顶部的椭圆形渲染错误」就是它。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#3DFFFFFF" />
+    <corners android:radius="4dp" />
+</shape>
