@@ -506,6 +506,125 @@
                         tools:ignore="UseSwitchCompatOrMaterialXml" />
                 </LinearLayout>
 
+                <!-- ===== 保活通知文案（v1.0.5：可自定义 / 可自动更新励志短句） ===== -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="24dp"
+                    android:text="@string/notify_keepalive_text_title"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="24dp"
+                    android:text="@string/notify_keepalive_text_hint"
+                    android:textColor="?attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/keepalive_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:hint="@string/notify_keepalive_title_label"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:padding="10dp"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textColorHint="?attr/textColorSecondary"
+                    android:textSize="14sp"
+                    tools:ignore="Autofill" />
+
+                <EditText
+                    android:id="@+id/keepalive_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:hint="@string/notify_keepalive_content_label"
+                    android:inputType="text"
+                    android:maxLines="2"
+                    android:padding="10dp"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textColorHint="?attr/textColorSecondary"
+                    android:textSize="14sp"
+                    tools:ignore="Autofill" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="1"
+                        android:text="@string/notify_keepalive_quote_enable"
+                        android:textColor="?attr/textColorPrimary"
+                        android:textSize="14sp" />
+
+                    <Switch
+                        android:id="@+id/keepalive_quote"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:ignore="UseSwitchCompatOrXml" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="24dp"
+                    android:text="@string/notify_keepalive_quote_hint"
+                    android:textColor="?attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/keepalive_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:padding="12dp"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/keepalive_refresh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="24dp"
+                    android:background="@drawable/element_rounded_bar_grey_light_24"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:padding="12dp"
+                    android:text="@string/notify_keepalive_refresh"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
                 <!-- 精确闹钟权限状态（Android 12+；未授权时提醒会被系统延后） -->
                 <TextView
                     android:id="@+id/exact_hint"
